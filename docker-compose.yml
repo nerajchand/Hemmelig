@@ -1,6 +1,6 @@
 services:
     hemmelig:
-        image: hemmelig # https://github.com/HemmeligOrg/Hemmelig.app/tags
+        image: ghcr.io/nerajchand/hemmelig:latest
         hostname: hemmelig
         init: true
         volumes:
