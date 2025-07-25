@@ -1,4 +1,35 @@
 {
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist.zip",
+              "label": "Distribution"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
+  },
   "name": "hemmelig",
   "version": "6.0.0",
   "description": "Paste a password, secret message or private information",
@@ -67,6 +98,11 @@
     "y8": "^1.0.5"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^10.0.4",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^11.0.7",
     "@tabler/icons": "^3.30.0",
     "@tabler/icons-react": "^3.30.0",
     "@tailwindcss/forms": "^0.5.9",
@@ -101,6 +137,7 @@
     "react-i18next": "^11.18.5",
     "react-qr-code": "^2.0.8",
     "react-router-dom": "^7.5.2",
+    "semantic-release": "^24.2.0",
     "tweetnacl": "^0.14.5",
     "tweetnacl-util": "^0.15.1",
     "vite": "^5.4.18",
