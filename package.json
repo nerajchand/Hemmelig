@@ -57,12 +57,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nerajchand/Hemmelig.git"
+    "url": "git+https://github.com/nine-digital/service-onetimesecret.git"
   },
   "author": "Bjarne Øverli",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/HemmeligOrg/Hemmelig.app/issues"
+    "url": "https://github.com/nine-digital/service-onetimesecret/issues"
   },
   "homepage": "/",
   "dependencies": {
