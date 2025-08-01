@@ -785,9 +785,6 @@ const Home = () => {
                 </>
             )}
 
-            <p className="text-gray-400 text-xs text-center pt-6">
-                Hemmelig, [he`m:(ə)li], {t('home.norwegian_meaning')}
-            </p>
         </div>
     );
 };
