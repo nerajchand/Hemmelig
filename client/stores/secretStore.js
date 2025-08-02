@@ -19,7 +19,7 @@ const defaultValues = {
         files: [],
         maxViews: 1,
         preventBurn: false,
-        ttl: 259200,
+        ttl: 86400, // 1 day in seconds
     },
     enablePassword: false,
     isPublic: false,
