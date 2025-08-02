@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/nerajchand/Hemmelig/compare/v1.1.0...v1.2.0) (2025-08-02)
+
+### Features
+
+-   Swap order of Secret URL ([a73fd26](https://github.com/nerajchand/Hemmelig/commit/a73fd26a9256a997944c490f325924f0f175ae49))
+
 # [1.1.0](https://github.com/nerajchand/Hemmelig/compare/v1.0.0...v1.1.0) (2025-08-02)
 
 ### Features
