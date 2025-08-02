@@ -3,7 +3,7 @@ export default `<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>Hemmelig.app - Paste a password, confidential message, or private data.</title>
+        <title>One Time Secret - Paste a password, confidential message, or private data.</title>
 
         <link rel="icon" href="/static/favicon.ico" />
         <link rel="shortcut icon" href="/static/favicon.ico" />

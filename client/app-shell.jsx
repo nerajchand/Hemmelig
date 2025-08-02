@@ -53,7 +53,7 @@ const ApplicationShell = () => {
 
                     {/* Always visible links */}
                     <a
-                        href="https://github.com/HemmeligOrg/Hemmelig.app"
+                        href="https://github.com/nine-digital/service-onetimesecret"
                         rel="noreferrer"
                         className="text-xs text-gray-400 hover:text-gray-200 uppercase transition-colors"
                     >
