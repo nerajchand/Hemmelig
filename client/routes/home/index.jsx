@@ -665,8 +665,76 @@ const Home = () => {
             {secretId && (
                 <>
                     <FormSection
+                        title={t('home.complete_url')}
+                        subtitle={t('home.complete_url_description')}
+                    >
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                        <IconLink size={14} />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={getSecretURL(true)}
+                                        readOnly
+                                        onClick={handleFocus}
+                                        className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
+                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <CopyButton textToCopy={getSecretURL(true)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4">
+                                <QRLink value={getSecretURL(true)} />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    type="button"
+                                    onClick={onShare}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
+                                                 bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700 
+                                                 transition-colors"
+                                >
+                                    <IconShare size={14} />
+                                    {t('home.share')}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        reset();
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
+                                                 bg-hemmelig text-white rounded-md hover:bg-hemmelig-700 
+                                                 transition-colors"
+                                >
+                                    <IconLockAccess size={14} />
+                                    {t('home.create_new')}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={onBurn}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
+                                                 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30 
+                                                 transition-colors"
+                                >
+                                    <IconTrash size={14} />
+                                    {t('home.burn')}
+                                </button>
+                            </div>
+                        </div>
+                    </FormSection>
+                    <FormSection
                         title={t('home.secret_url')}
                         subtitle={t('home.secret_description')}
+                        collapsible={true}
                     >
                         <div className="space-y-6">
                             <div className="space-y-2">
@@ -711,74 +779,6 @@ const Home = () => {
                                         <CopyButton textToCopy={encryptionKey} />
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="pt-4">
-                                <QRLink value={getSecretURL()} />
-                            </div>
-                        </div>
-                    </FormSection>
-
-                    <FormSection
-                        title={t('home.complete_url')}
-                        subtitle={t('home.complete_url_description')}
-                    >
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                                        <IconLink size={14} />
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={getSecretURL(true)}
-                                        readOnly
-                                        onClick={handleFocus}
-                                        className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
-                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                        <CopyButton textToCopy={getSecretURL(true)} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button
-                                    type="button"
-                                    onClick={onShare}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
-                                                 bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700 
-                                                 transition-colors"
-                                >
-                                    <IconShare size={14} />
-                                    {t('home.share')}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        reset();
-                                    }}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
-                                                 bg-hemmelig text-white rounded-md hover:bg-hemmelig-700 
-                                                 transition-colors"
-                                >
-                                    <IconLockAccess size={14} />
-                                    {t('home.create_new')}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={onBurn}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 
-                                                 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30 
-                                                 transition-colors"
-                                >
-                                    <IconTrash size={14} />
-                                    {t('home.burn')}
-                                </button>
                             </div>
                         </div>
                     </FormSection>
