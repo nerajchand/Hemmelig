@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/nerajchand/Hemmelig/compare/v1.0.0...v1.1.0) (2025-08-02)
+
+### Features
+
+-   Update image in dockerfile ([dd5f074](https://github.com/nerajchand/Hemmelig/commit/dd5f07463422c4dc3e3937ffece4bdde8dee7d2b))
+
 # 1.0.0 (2025-08-02)
 
 ### Bug Fixes
