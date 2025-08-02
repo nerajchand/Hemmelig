@@ -219,7 +219,8 @@ const Home = () => {
                         <p className="mt-2 text-sm text-gray-400">{t('home.title_description')}</p>
                     </div>
 
-                    {!disableFileUpload && (
+                    {/* Only show file upload if not disabled in settings */}
+                    {!settings.disable_file_upload && !disableFileUpload && (
                         <div className="space-y-4">
                             <div
                                 onDragEnter={handleDragEnter}
@@ -330,26 +331,8 @@ const Home = () => {
                             )}
                         </div>
                     )}
-                    {disableFileUpload && (
-                        <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/[0.08]">
-                            <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <IconFileUpload className="text-primary" size={18} />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-white/90">
-                                        {t('home.login_to_upload')}
-                                    </div>
-                                </div>
-                            </div>
-                            <Link
-                                to="/signin"
-                                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 transition-colors"
-                            >
-                                {t('home.sign_in')}
-                            </Link>
-                        </div>
-                    )}
+                    {/* Hide file upload section entirely if disabled in settings */}
+                    {settings.disable_file_upload && null}
                 </div>
             </FormSection>
 
