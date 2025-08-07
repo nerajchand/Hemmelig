@@ -55,10 +55,14 @@ COPY prisma/ ./prisma/
 COPY config/ ./config/
 COPY public/ ./public/
 
+# Install Prisma CLI for migrations
+RUN npm install prisma --no-save
+
 # Generate Prisma client
 RUN npx prisma generate && \
     # Set proper permissions
     chown -R node:node ./
+
 
 # Expose application port
 EXPOSE 3000
