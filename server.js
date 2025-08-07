@@ -185,6 +185,7 @@ const startServer = async () => {
         await fastify.listen({ port: config.get('port'), host: config.get('localHostname') });
     } catch (err) {
         fastify.log.error(err);
+        process.exit(1); // Ensure the process exits on error
     }
 };
 
