@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/nerajchand/Hemmelig/compare/v1.3.0...v1.4.0) (2025-08-13)
+
+### Features
+
+-   Use standalone Postgres DB ([66380f3](https://github.com/nerajchand/Hemmelig/commit/66380f30cb3ad734c99fa8053939917ed319e18d))
+
 # [1.3.0](https://github.com/nerajchand/Hemmelig/compare/v1.2.0...v1.3.0) (2025-08-02)
 
 ### Features
