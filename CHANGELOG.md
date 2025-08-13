@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/nerajchand/Hemmelig/compare/v1.4.0...v1.4.1) (2025-08-13)
+
+### Bug Fixes
+
+-   Update Docker setup for PostgreSQL connectivity ([3173315](https://github.com/nerajchand/Hemmelig/commit/31733157ba24488a9211bda5299071931a20a164))
+
 # [1.4.0](https://github.com/nerajchand/Hemmelig/compare/v1.3.0...v1.4.0) (2025-08-13)
 
 ### Features
