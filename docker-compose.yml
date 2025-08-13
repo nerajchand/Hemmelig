@@ -1,6 +1,8 @@
+version: '3.8'
+
 services:
     hemmelig:
-        image: ghcr.io/nerajchand/hemmelig:latest
+        image: ghcr.io/nerajchand/hemmelig:1.5.0
         hostname: hemmelig
         init: true
         volumes:
@@ -24,9 +26,10 @@ services:
         restart: always
         stop_grace_period: 1m
         healthcheck:
-            test: 'curl -o /dev/null localhost:3000/api/healthz || exit 1'
-            timeout: 5s
-            retries: 3
+            test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/healthz']
+            interval: 30s
+            timeout: 10s
+            retries: 5
         depends_on:
             - postgres
     postgres:
@@ -40,6 +43,7 @@ services:
             - postgres_data:/var/lib/postgresql/data
         ports:
             - '5432:5432'
+
 volumes:
     postgres_data:
         driver: local
