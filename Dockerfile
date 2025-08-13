@@ -1,13 +1,5 @@
-# Bare minimum run
-# ------------------------------
-# $ docker run -p 3000:3000 -d --name=hemmelig \
-#   -v ./data/hemmelig/:/var/tmp/hemmelig/upload/files \
-#   -v ./database/:/home/node/hemmelig/database/ \
-#   ghcr.io/nerajchand/hemmelig:latest
-
 # Build stage
 FROM node:22-slim AS builder
-
 WORKDIR /usr/src/app
 
 # Copy package files first to leverage Docker layer caching
@@ -36,6 +28,7 @@ FROM node:22-slim AS production
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     openssl \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/node/hemmelig
@@ -63,19 +56,15 @@ RUN npx prisma generate && \
     # Set proper permissions
     chown -R node:node ./
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /home/node/hemmelig/
+RUN chmod +x /home/node/hemmelig/docker-entrypoint.sh
 
 # Expose application port
 EXPOSE 3000
 
-# Set environment variables
-ENV NODE_ENV=production
-
 # Use non-root user
 USER node
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/healthz || exit 1
-
-# Start the application
-CMD ["npm", "run", "start"]
+# Start with entrypoint script
+CMD ["/home/node/hemmelig/docker-entrypoint.sh", "npm", "run", "start"]
