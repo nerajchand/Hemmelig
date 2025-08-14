@@ -18,10 +18,12 @@ import Editor from '../../components/editor';
 import ErrorBox from '../../components/error-box';
 
 const getEncryptionKeyHash = (hash) => {
-    const id = '#encryption_key=';
-    if (!hash || !hash.includes(id)) return '';
-    const [_, encryptionKey] = hash.split('#encryption_key=');
-    return encryptionKey;
+    if (!hash) return '';
+    try {
+        return atob(hash.substring(1));
+    } catch (e) {
+        return '';
+    }
 };
 
 const Secret = () => {

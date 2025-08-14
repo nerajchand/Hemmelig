@@ -34,7 +34,6 @@ const createAppRouter = () => {
             <>
                 <Route path="/" element={<ApplicationShell />}>
                     <Route index element={<Home />} />
-                    <Route path="secret/:encryptionKey/:secretId" element={<Secret />} />
                     <Route path="secret/:secretId" element={<Secret />} />
                     <Route
                         element={<PublicSecrets />}
