@@ -18,7 +18,6 @@ import {
 } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { burnSecret } from '../../api/secret';
 import CopyButton from '../../components/CopyButton';
 import Editor from '../../components/editor';
@@ -94,7 +93,7 @@ const Home = () => {
 
     const getSecretURL = (withEncryptionKey = true) => {
         if (!withEncryptionKey) return `${window.location.origin}/secret/${secretId}`;
-        return `${window.location.origin}/secret/${secretId}#encryption_key=${encryptionKey}`;
+        return `${window.location.origin}/secret/${secretId}#${btoa(encryptionKey)}`;
     };
 
     const onShare = (event) => {
@@ -767,7 +766,6 @@ const Home = () => {
                     </FormSection>
                 </>
             )}
-
         </div>
     );
 };
