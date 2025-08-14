@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/nerajchand/Hemmelig/compare/v1.4.1...v1.5.0) (2025-08-14)
+
+### Features
+
+-   Hide decryption key in the URL ([c6ba9f4](https://github.com/nerajchand/Hemmelig/commit/c6ba9f429999715445da7f0a96da3110f6617f50))
+
 ## [1.4.1](https://github.com/nerajchand/Hemmelig/compare/v1.4.0...v1.4.1) (2025-08-13)
 
 ### Bug Fixes
