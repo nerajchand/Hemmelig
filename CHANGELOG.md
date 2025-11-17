@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/nerajchand/Hemmelig/compare/v1.5.0...v1.6.0) (2025-11-17)
+
+### Features
+
+-   Add Password Generation API Endpoint ([450f8a0](https://github.com/nerajchand/Hemmelig/commit/450f8a04e2c065f94ad9ab4bef370640d23625dc))
+
 # [1.5.0](https://github.com/nerajchand/Hemmelig/compare/v1.4.1...v1.5.0) (2025-08-14)
 
 ### Features
