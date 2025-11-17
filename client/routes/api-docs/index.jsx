@@ -338,6 +338,90 @@ const ApiDocs = () => {
                         </div>
                     </div>
 
+                    {/* Password Generation Endpoints */}
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-white mb-4">Password Generation</h3>
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="inline-block px-2 py-1 text-sm font-medium bg-green-500/20 text-green-400 rounded">
+                                        POST
+                                    </span>
+                                    <span className="ml-2 text-gray-300">
+                                        /api/password/generate
+                                    </span>
+                                </div>
+                                <p className="text-gray-300 text-sm">
+                                    Generate a secure password, create a secret, and return a
+                                    shareable URL (similar to web UI workflow)
+                                </p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {JSON.stringify(
+                                            {
+                                                length: 16,
+                                                numbers: true,
+                                                symbols: true,
+                                                uppercase: true,
+                                                lowercase: true,
+                                                excludeSimilarCharacters: false,
+                                                strict: false,
+                                                ttl: 86400,
+                                                maxViews: 1,
+                                                title: 'Generated Password',
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    All fields are optional. Defaults: length=16, all character sets
+                                    enabled, ttl=86400 (1 day), maxViews=1.
+                                </p>
+                                <p className="text-gray-400 text-xs mt-2">Example response:</p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {JSON.stringify(
+                                            {
+                                                url: 'https://secret.local/secret/abc123#encryptionkey',
+                                                secretId: 'abc123',
+                                                password: 'aB3$kL9#mN2@xY7!',
+                                                expiresAt: '2024-01-02T00:00:00.000Z',
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="inline-block px-2 py-1 text-sm font-medium bg-blue-500/20 text-blue-400 rounded">
+                                        GET
+                                    </span>
+                                    <span className="ml-2 text-gray-300">
+                                        /api/password/generate?length=20&ttl=3600&maxViews=1
+                                    </span>
+                                </div>
+                                <p className="text-gray-300 text-sm">
+                                    Generate a password and create a secret using query parameters
+                                    (convenient for simple GET requests)
+                                </p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {`GET /api/password/generate?length=20&numbers=true&symbols=true&ttl=3600&maxViews=1`}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    The returned URL can be shared with anyone to retrieve the
+                                    password through the web app.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Admin Endpoints */}
                     <div className="bg-gray-800/50 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-4">

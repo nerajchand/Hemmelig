@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer/';
+import { Buffer } from 'buffer';
 
 const STORAGE_KEY = '__HEMMELIG_TOKEN_PUBLIC';
 
