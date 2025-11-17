@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/nerajchand/Hemmelig/compare/v1.6.0...v1.6.1) (2025-11-17)
+
+### Bug Fixes
+
+-   Hide Password by default in API response ([c0f5928](https://github.com/nerajchand/Hemmelig/commit/c0f592898bd9544553b113dbe8ea3c8917393e94))
+
 # [1.6.0](https://github.com/nerajchand/Hemmelig/compare/v1.5.0...v1.6.0) (2025-11-17)
 
 ### Features
