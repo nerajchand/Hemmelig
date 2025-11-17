@@ -83,6 +83,7 @@
     "fastify": "^5.2.1",
     "fastify-plugin": "^5.0.1",
     "file-type": "^18.0.0",
+    "generate-password": "^1.7.1",
     "generate-password-browser": "^1.1.0",
     "ip-range-check": "^0.2.0",
     "is-base64": "^1.1.0",
