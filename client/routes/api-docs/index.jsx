@@ -369,6 +369,7 @@ const ApiDocs = () => {
                                                 ttl: 86400,
                                                 maxViews: 1,
                                                 title: 'Generated Password',
+                                                showPassword: false,
                                             },
                                             null,
                                             2
@@ -377,9 +378,34 @@ const ApiDocs = () => {
                                 </pre>
                                 <p className="text-gray-400 text-xs mt-2">
                                     All fields are optional. Defaults: length=16, all character sets
-                                    enabled, ttl=86400 (1 day), maxViews=1.
+                                    enabled, ttl=86400 (1 day), maxViews=1, showPassword=false.
                                 </p>
-                                <p className="text-gray-400 text-xs mt-2">Example response:</p>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    Note: By default, the password is not returned in the response
+                                    for security. Set{' '}
+                                    <code className="text-gray-300">showPassword: true</code> to
+                                    include it.
+                                </p>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    Example response (default, no password):
+                                </p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {JSON.stringify(
+                                            {
+                                                url: 'https://secret.local/secret/abc123#encryptionkey',
+                                                secretId: 'abc123',
+                                                expiresAt: '2024-01-02T00:00:00.000Z',
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    Example response (with{' '}
+                                    <code className="text-gray-300">showPassword: true</code>):
+                                </p>
                                 <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
                                     <code>
                                         {JSON.stringify(
@@ -411,12 +437,15 @@ const ApiDocs = () => {
                                 </p>
                                 <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
                                     <code>
-                                        {`GET /api/password/generate?length=20&numbers=true&symbols=true&ttl=3600&maxViews=1`}
+                                        {`GET /api/password/generate?length=20&numbers=true&symbols=true&ttl=3600&maxViews=1&showPassword=false`}
                                     </code>
                                 </pre>
                                 <p className="text-gray-400 text-xs mt-2">
                                     The returned URL can be shared with anyone to retrieve the
-                                    password through the web app.
+                                    password through the web app. By default, the password is not
+                                    included in the response. Add{' '}
+                                    <code className="text-gray-300">showPassword=true</code> to
+                                    include it.
                                 </p>
                             </div>
                         </div>

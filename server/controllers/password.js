@@ -93,6 +93,10 @@ async function password(fastify) {
                             type: 'string',
                             maxLength: 255,
                         },
+                        showPassword: {
+                            type: 'boolean',
+                            default: false,
+                        },
                     },
                 },
             },
@@ -109,6 +113,7 @@ async function password(fastify) {
                 ttl = 86400,
                 maxViews = 1,
                 title,
+                showPassword = false,
             } = request.body;
 
             // Validate that at least one character set is enabled
@@ -203,12 +208,18 @@ async function password(fastify) {
                 const encryptionKeyBase64 = Buffer.from(encryptionKey).toString('base64');
                 const shareableUrl = `${baseUrl}/secret/${secret.id}#${encryptionKeyBase64}`;
 
-                return reply.code(200).send({
+                const response = {
                     url: shareableUrl,
                     secretId: secret.id,
-                    password: generatedPassword, // Return for convenience
                     expiresAt: secret.expiresAt,
-                });
+                };
+
+                // Only include password if explicitly requested (POST uses boolean)
+                if (showPassword) {
+                    response.password = generatedPassword;
+                }
+
+                return reply.code(200).send(response);
             } catch (error) {
                 fastify.log.error(error);
                 return reply.code(500).send({
@@ -276,6 +287,10 @@ async function password(fastify) {
                             type: 'string',
                             pattern: '^\\d+$',
                         },
+                        showPassword: {
+                            type: 'string',
+                            enum: ['true', 'false'],
+                        },
                     },
                 },
             },
@@ -291,6 +306,7 @@ async function password(fastify) {
                 strict = 'false',
                 ttl = '86400',
                 maxViews = '1',
+                showPassword = 'false',
             } = request.query;
 
             const lengthNum = parseInt(length, 10);
@@ -397,12 +413,18 @@ async function password(fastify) {
                 const encryptionKeyBase64 = Buffer.from(encryptionKey).toString('base64');
                 const shareableUrl = `${baseUrl}/secret/${secret.id}#${encryptionKeyBase64}`;
 
-                return reply.code(200).send({
+                const response = {
                     url: shareableUrl,
                     secretId: secret.id,
-                    password: generatedPassword, // Return for convenience
                     expiresAt: secret.expiresAt,
-                });
+                };
+
+                // Only include password if explicitly requested
+                if (showPassword === 'true') {
+                    response.password = generatedPassword;
+                }
+
+                return reply.code(200).send(response);
             } catch (error) {
                 fastify.log.error(error);
                 return reply.code(500).send({
