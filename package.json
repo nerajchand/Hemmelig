@@ -139,7 +139,8 @@
     "zustand": "^5.0.0"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "**/*": "prettier --write --ignore-unknown",
+    ".github/workflows/**": "true"
   },
   "browserslist": {
     "production": [
