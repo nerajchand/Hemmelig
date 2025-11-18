@@ -406,10 +406,18 @@ jobs:
                           // Get all package versions
                           const { versions, isOrg } = await getPackageVersions();
                           
-                          console.log(`Found ${versions.length} package versions`);
+                          console.log(`Found ${versions.length} total package versions`);
                           
-                          // Filter versions that match PR tags
-                          const prVersions = versions.filter(version => {
+                          // Log all versions for debugging
+                          console.log('\n📦 All package versions:');
+                          versions.forEach(v => {
+                              const tags = v.metadata?.container?.tags || [];
+                              const digest = v.name || 'unknown';
+                              console.log(`  Version ${v.id}: tags=[${tags.join(', ')}], digest=${digest}`);
+                          });
+                          
+                          // Step 1: Find all versions that directly match PR tags
+                          const prVersionsByTag = versions.filter(version => {
                               const tags = version.metadata?.container?.tags || [];
                               return tags.some(tag => 
                                   tag === `pr-${prNumber}` || 
@@ -417,37 +425,91 @@ jobs:
                               );
                           });
                           
-                          console.log(`Found ${prVersions.length} versions matching PR tags`);
+                          console.log(`\n🔍 Found ${prVersionsByTag.length} versions with PR tags:`);
+                          prVersionsByTag.forEach(v => {
+                              const tags = v.metadata?.container?.tags || [];
+                              console.log(`  ✓ Version ${v.id}: [${tags.join(', ')}]`);
+                          });
                           
-                          if (prVersions.length === 0) {
+                          // Step 2: Find all versions that share the same digest as PR-tagged versions
+                          // When multiple tags point to the same image, they share the same digest
+                          const prDigests = new Set();
+                          prVersionsByTag.forEach(version => {
+                              // The digest is typically in version.name or we can use the version ID
+                              // Actually, each tag creates a separate version, so we need to delete all of them
+                              prDigests.add(version.id);
+                          });
+                          
+                          // Step 3: Also find versions by checking if any tag matches (in case tags are stored differently)
+                          // Some versions might have the tag in a different format
+                          const allPrVersions = versions.filter(version => {
+                              const tags = version.metadata?.container?.tags || [];
+                              const versionId = version.id.toString();
+                              
+                              // Check if it's already in our list
+                              if (prDigests.has(version.id)) {
+                                  return true;
+                              }
+                              
+                              // Check tags
+                              const hasPrTag = tags.some(tag => 
+                                  tag === `pr-${prNumber}` || 
+                                  tag.startsWith(`pr-${prNumber}-`)
+                              );
+                              
+                              return hasPrTag;
+                          });
+                          
+                          // Remove duplicates by version ID
+                          const uniquePrVersions = Array.from(
+                              new Map(allPrVersions.map(v => [v.id, v])).values()
+                          );
+                          
+                          console.log(`\n🎯 Total unique PR versions to delete: ${uniquePrVersions.length}`);
+                          uniquePrVersions.forEach(v => {
+                              const tags = v.metadata?.container?.tags || [];
+                              console.log(`  → Version ${v.id}: [${tags.join(', ')}]`);
+                          });
+                          
+                          if (uniquePrVersions.length === 0) {
                               console.log('ℹ️ No PR images found to delete');
                               return;
                           }
                           
                           // Delete each matching version
                           let deletedCount = 0;
-                          for (const version of prVersions) {
+                          let failedCount = 0;
+                          for (const version of uniquePrVersions) {
                               try {
                                   const tags = version.metadata?.container?.tags || [];
-                                  console.log(`Deleting version ${version.id} with tags: ${tags.join(', ')}`);
+                                  console.log(`\n🗑️ Deleting version ${version.id} with tags: [${tags.join(', ')}]`);
                                   
                                   await deletePackageVersion(version.id, isOrg);
                                   
                                   deletedCount++;
-                                  console.log(`✅ Deleted version ${version.id}`);
+                                  console.log(`✅ Successfully deleted version ${version.id}`);
                               } catch (error) {
+                                  failedCount++;
                                   console.error(`❌ Failed to delete version ${version.id}:`, error.message);
+                                  if (error.status === 403) {
+                                      console.error(`   This usually means the token lacks 'delete:packages' scope`);
+                                  }
                               }
                           }
                           
-                          console.log(`\n✅ Successfully deleted ${deletedCount} of ${prVersions.length} PR image versions`);
+                          console.log(`\n📊 Summary: Deleted ${deletedCount} of ${uniquePrVersions.length} PR image versions`);
+                          if (failedCount > 0) {
+                              console.log(`   ⚠️ ${failedCount} deletion(s) failed`);
+                          }
                       } catch (error) {
                           if (error.status === 404) {
                               console.log('ℹ️ Package not found or no versions exist');
                           } else if (error.status === 403) {
-                              console.log('⚠️ Permission denied. Ensure GH_TOKEN has delete:packages permission');
-                              console.log('   You may need to manually delete via:');
-                              console.log(`   https://github.com/${owner}/${repo.repo}/pkgs/container/${repoLower}`);
+                              console.log('⚠️ Permission denied. The GH_TOKEN needs the following scopes:');
+                              console.log('   - delete:packages');
+                              console.log('   - read:packages');
+                              console.log('\n   Create a PAT at: https://github.com/settings/tokens');
+                              console.log(`   Manual deletion: https://github.com/${owner}/${repo.repo}/pkgs/container/${repoLower}`);
                           } else {
                               console.error('❌ Error deleting package versions:', error.message);
                               throw error;
