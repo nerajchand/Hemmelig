@@ -86,6 +86,11 @@ const Home = () => {
     const onSetPublic = (event) => {
         event.preventDefault();
 
+        // Don't allow toggling if public secrets are disabled
+        if (settings.disable_public_secrets) {
+            return;
+        }
+
         setField('isPublic', !isPublic);
     };
 
@@ -338,34 +343,40 @@ const Home = () => {
             <FormSection title={t('home.security')} subtitle={t('home.security_description')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
-                        <div className="space-y-4">
-                            <button
-                                type="button"
-                                onClick={onSetPublic}
-                                disabled={inputReadOnly}
-                                className={`
-                                        w-full flex items-start gap-4 px-4 py-3.5
-                                        bg-black/20 rounded-lg border
-                                        ${inputReadOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-white/[0.12]'} 
-                                        transition-all duration-200
-                                        ${!isPublic ? 'text-primary border-primary/50' : 'text-gray-300 border-white/[0.08]'}
-                                    `}
-                            >
-                                <div className="p-2.5 bg-black/20 rounded-lg shrink-0">
-                                    {isPublic ? <IconLockOpen size={22} /> : <IconLock size={22} />}
-                                </div>
-                                <div className="flex flex-col items-start min-w-0">
-                                    <span className="text-sm font-medium mb-0.5">
-                                        {t(isPublic ? 'home.public' : 'home.private')}
-                                    </span>
-                                    <span className="text-xs text-gray-400 text-left">
-                                        {isPublic
-                                            ? t('home.public_description')
-                                            : t('home.private_description')}
-                                    </span>
-                                </div>
-                            </button>
-                        </div>
+                        {!settings.disable_public_secrets && (
+                            <div className="space-y-4">
+                                <button
+                                    type="button"
+                                    onClick={onSetPublic}
+                                    disabled={inputReadOnly}
+                                    className={`
+                                            w-full flex items-start gap-4 px-4 py-3.5
+                                            bg-black/20 rounded-lg border
+                                            ${inputReadOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-white/[0.12]'} 
+                                            transition-all duration-200
+                                            ${!isPublic ? 'text-primary border-primary/50' : 'text-gray-300 border-white/[0.08]'}
+                                        `}
+                                >
+                                    <div className="p-2.5 bg-black/20 rounded-lg shrink-0">
+                                        {isPublic ? (
+                                            <IconLockOpen size={22} />
+                                        ) : (
+                                            <IconLock size={22} />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col items-start min-w-0">
+                                        <span className="text-sm font-medium mb-0.5">
+                                            {t(isPublic ? 'home.public' : 'home.private')}
+                                        </span>
+                                        <span className="text-xs text-gray-400 text-left">
+                                            {isPublic
+                                                ? t('home.public_description')
+                                                : t('home.private_description')}
+                                        </span>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <div
@@ -563,7 +574,7 @@ const Home = () => {
                                 <input
                                     type="range"
                                     min="1"
-                                    max="100"
+                                    max={Math.min(100, config.get('secret.maxViewsLimit'))}
                                     value={formData.maxViews}
                                     onChange={(e) =>
                                         setField('formData.maxViews', parseInt(e.target.value))
@@ -576,34 +587,36 @@ const Home = () => {
                             </div>
                         )}
 
-                        <div className="p-4 bg-black/20 rounded-lg border border-white/[0.08]">
-                            <div
-                                className={`flex items-center justify-between gap-4 ${inputReadOnly ? 'cursor-not-allowed opacity-80' : ''}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-orange-500/10 rounded-lg">
-                                        <IconFlame className="text-orange-400" size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-medium text-white/90">
-                                            {t('home.burn_after_time')}
-                                        </div>
-                                        <div className="text-xs text-gray-400">
-                                            {t('home.burn_aftertime')}
-                                        </div>
-                                    </div>
-                                </div>
-                                <Switch
-                                    checked={formData.preventBurn}
-                                    onChange={(checked) =>
-                                        setField('formData.preventBurn', checked)
-                                    }
-                                    disabled={inputReadOnly}
+                        {config.get('secret.enableBurnAfterTime') && (
+                            <div className="p-4 bg-black/20 rounded-lg border border-white/[0.08]">
+                                <div
+                                    className={`flex items-center justify-between gap-4 ${inputReadOnly ? 'cursor-not-allowed opacity-80' : ''}`}
                                 >
-                                    {t('home.burn_after_time')}
-                                </Switch>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-500/10 rounded-lg">
+                                            <IconFlame className="text-orange-400" size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-medium text-white/90">
+                                                {t('home.burn_after_time')}
+                                            </div>
+                                            <div className="text-xs text-gray-400">
+                                                {t('home.burn_aftertime')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        checked={formData.preventBurn}
+                                        onChange={(checked) =>
+                                            setField('formData.preventBurn', checked)
+                                        }
+                                        disabled={inputReadOnly}
+                                    >
+                                        {t('home.burn_after_time')}
+                                    </Switch>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </FormSection>
