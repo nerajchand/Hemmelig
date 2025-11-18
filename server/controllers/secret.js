@@ -1,3 +1,4 @@
+import config from 'config';
 import validator from 'validator';
 import getClientIp from '../helpers/client-ip.js';
 import { compare, hash } from '../helpers/password.js';
@@ -146,7 +147,11 @@ async function secret(fastify) {
                         password: { type: 'string' },
                         allowedIp: { type: 'string' },
                         preventBurn: { type: 'boolean' },
-                        maxViews: { type: 'integer', minimum: 1, maximum: 999 },
+                        maxViews: {
+                            type: 'integer',
+                            minimum: 1,
+                            maximum: config.get('secret.maxViewsLimit'),
+                        },
                         isPublic: { type: 'boolean' },
                     },
                 },
@@ -161,6 +166,28 @@ async function secret(fastify) {
                 return reply.code(400).send({ message: 'The IP address is not valid' });
             }
 
+            // Validate preventBurn is only used if feature is enabled
+            const enableBurnAfterTime = config.get('secret.enableBurnAfterTime');
+            if (!enableBurnAfterTime && preventBurn === false) {
+                return reply.code(400).send({
+                    message: 'Burn after time feature is disabled for this instance',
+                });
+            }
+
+            // If feature is disabled, force preventBurn to true
+            const finalPreventBurn = enableBurnAfterTime ? preventBurn : true;
+
+            // Validate public secrets are not disabled
+            const disablePublicSecrets = config.get('secret.disablePublicSecrets');
+            if (disablePublicSecrets && isPublic) {
+                return reply.code(400).send({
+                    message: 'Public secrets are disabled for this instance',
+                });
+            }
+
+            // Force isPublic to false if public secrets are disabled
+            const finalIsPublic = disablePublicSecrets ? false : isPublic;
+
             const secret = await prisma.secret.create({
                 data: {
                     title,
@@ -168,8 +195,8 @@ async function secret(fastify) {
                     data: text,
                     allowed_ip: allowedIp,
                     password: password ? await hash(password) : undefined,
-                    preventBurn,
-                    isPublic,
+                    preventBurn: finalPreventBurn,
+                    isPublic: finalIsPublic,
                     files: {
                         create: files,
                     },

@@ -58,11 +58,14 @@ const Nav = ({ opened, toggle, isLoggedIn }) => {
         });
     }
 
-    navItems.push({
-        label: t('public_list'),
-        icon: <IconList size="1rem" stroke={1.5} />,
-        to: '/public',
-    });
+    // Only show public list if public secrets are enabled
+    if (!settings.disable_public_secrets) {
+        navItems.push({
+            label: t('public_list'),
+            icon: <IconList size="1rem" stroke={1.5} />,
+            to: '/public',
+        });
+    }
 
     if (!opened) {
         return null;

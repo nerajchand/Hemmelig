@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     hemmelig:
-        image: ghcr.io/nerajchand/hemmelig:latest
+        image: hemmelig:latest
         hostname: hemmelig
         init: true
         volumes:
@@ -12,7 +12,7 @@ services:
         environment:
             - SECRET_LOCAL_HOSTNAME=0.0.0.0 # The local hostname for the fastify instance
             - SECRET_PORT=3000 # The port number for the fastify instance
-            - SECRET_HOST=!changeme! # Used for i.e. set cors/cookies to your domain name
+            - SECRET_HOST=localhost # Used for i.e. set cors/cookies to your domain name
             - SECRET_ROOT_USER=groot # User as the root admin user
             - SECRET_ROOT_PASSWORD=iamroot # The admin user password (change this after signed in)
             - SECRET_ROOT_EMAIL=groot@hemmelig.app # The email for the admin user
@@ -20,7 +20,19 @@ services:
             - SECRET_FORCED_LANGUAGE=en # Set the default language for the application
             - SECRET_JWT_SECRET=!changeme! # Override this for the secret signin JWT tokens for log in
             - SECRET_MAX_TEXT_SIZE=256 # The max text size for the secret. Is set in kb. i.e. 256 for 256kb
+            - SECRET_ANALYTICS_ENABLED=true
             - DATABASE_URL=postgresql://hemmelig:hemmelig@postgres:5432/hemmelig # Prisma connection string
+            # Instance settings (all default to "false" if not set)
+            # - SECRET_READ_ONLY=true # Enable read-only mode
+            # - SECRET_DISABLE_USERS=true # Disable user functionality
+            # - SECRET_DISABLE_USER_ACCOUNT_CREATION=true # Disable user registration
+            # - SECRET_DISABLE_IP_RESTRICTION=true # Disable IP restriction feature
+            # - SECRET_DISABLE_FILE_UPLOAD=true # Disable file uploads
+            # - SECRET_RESTRICT_ORGANIZATION_EMAIL=example.com,company.com # Comma-separated email domains
+            # Secret settings
+            - SECRET_MAX_VIEWS_LIMIT=20 # Maximum allowed views for secrets
+            # - SECRET_ENABLE_BURN_AFTER_TIME=true # Enable burn after time expires feature
+            # - SECRET_DISABLE_PUBLIC_SECRETS=true # Disable public secrets feature
         ports:
             - '3000:3000'
         restart: always
