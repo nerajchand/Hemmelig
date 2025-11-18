@@ -181,12 +181,12 @@ async function analytics(fastify) {
 
                 const rawData = await prisma.$queryRaw`
                     SELECT 
-                        strftime('%Y-%m-%d', "timestamp" / 1000, 'unixepoch') as date,
+                        TO_CHAR("timestamp", 'YYYY-MM-DD') as date,
                         COUNT(DISTINCT "uniqueId") as unique_visitors,
                         COUNT(*) as total_visits,
-                        GROUP_CONCAT(DISTINCT path) as paths
+                        STRING_AGG(DISTINCT path, ', ') as paths
                     FROM "VisitorAnalytics"
-                    GROUP BY strftime('%Y-%m-%d', "timestamp" / 1000, 'unixepoch')
+                    GROUP BY TO_CHAR("timestamp", 'YYYY-MM-DD')
                     ORDER BY date DESC
                     LIMIT 30
                 `;
