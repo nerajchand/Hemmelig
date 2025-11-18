@@ -11,6 +11,7 @@ jobs:
     check-docker-build:
         name: Build and Test Docker Image
         runs-on: ubuntu-latest
+        if: github.event.action != 'closed'
         permissions:
             contents: read
             pull-requests: write
@@ -339,18 +340,116 @@ jobs:
                   echo "repo_lower=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
             - name: Delete PR images
-              run: |
-                  REPO="${{ steps.pr-info.outputs.repo_lower }}"
-                  PR_NUM="${{ steps.pr-info.outputs.pr_number }}"
-                  
-                  echo "🗑️ Attempting to clean up images for PR #$PR_NUM"
-                  echo "Repository: $REPO"
-                  echo "PR tags: pr-$PR_NUM, pr-$PR_NUM-*"
-                  
-                  # Note: GHCR doesn't have a simple CLI to delete by tag pattern
-                  # Images will persist until manually deleted or retention policy applies
-                  # You can manually delete via: https://github.com/${{ github.repository }}/pkgs/container/$REPO
-                  
-                  echo "ℹ️ Automatic cleanup requires GitHub Packages API access"
-                  echo "   Images tagged with 'pr-$PR_NUM' and 'pr-$PR_NUM-*' can be manually deleted"
-                  echo "   Or configure package retention policies in repository settings"
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+                  script: |
+                      const repo = context.repo;
+                      const prNumber = context.payload.pull_request.number;
+                      const repoLower = repo.repo.toLowerCase();
+                      const owner = repo.owner;
+                      
+                      console.log(`🗑️ Attempting to clean up images for PR #${prNumber}`);
+                      console.log(`Repository: ${owner}/${repoLower}`);
+                      console.log(`PR tags: pr-${prNumber}, pr-${prNumber}-*`);
+                      
+                      // Helper function to get package versions (try org first, then user)
+                      async function getPackageVersions() {
+                          try {
+                              // Try organization endpoint first
+                              const { data: versions } = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
+                                  package_type: 'container',
+                                  package_name: repoLower,
+                                  org: owner,
+                                  per_page: 100
+                              });
+                              return { versions, isOrg: true };
+                          } catch (orgError) {
+                              if (orgError.status === 404) {
+                                  // Try user endpoint
+                                  try {
+                                      const { data: versions } = await github.rest.packages.getAllPackageVersionsForPackageOwnedByUser({
+                                          package_type: 'container',
+                                          package_name: repoLower,
+                                          username: owner,
+                                          per_page: 100
+                                      });
+                                      return { versions, isOrg: false };
+                                  } catch (userError) {
+                                      throw userError;
+                                  }
+                              }
+                              throw orgError;
+                          }
+                      }
+                      
+                      // Helper function to delete a package version
+                      async function deletePackageVersion(versionId, isOrg) {
+                          if (isOrg) {
+                              return await github.rest.packages.deletePackageVersionForOrg({
+                                  package_type: 'container',
+                                  package_name: repoLower,
+                                  org: owner,
+                                  package_version_id: versionId
+                              });
+                          } else {
+                              return await github.rest.packages.deletePackageVersionForUser({
+                                  package_type: 'container',
+                                  package_name: repoLower,
+                                  username: owner,
+                                  package_version_id: versionId
+                              });
+                          }
+                      }
+                      
+                      try {
+                          // Get all package versions
+                          const { versions, isOrg } = await getPackageVersions();
+                          
+                          console.log(`Found ${versions.length} package versions`);
+                          
+                          // Filter versions that match PR tags
+                          const prVersions = versions.filter(version => {
+                              const tags = version.metadata?.container?.tags || [];
+                              return tags.some(tag => 
+                                  tag === `pr-${prNumber}` || 
+                                  tag.startsWith(`pr-${prNumber}-`)
+                              );
+                          });
+                          
+                          console.log(`Found ${prVersions.length} versions matching PR tags`);
+                          
+                          if (prVersions.length === 0) {
+                              console.log('ℹ️ No PR images found to delete');
+                              return;
+                          }
+                          
+                          // Delete each matching version
+                          let deletedCount = 0;
+                          for (const version of prVersions) {
+                              try {
+                                  const tags = version.metadata?.container?.tags || [];
+                                  console.log(`Deleting version ${version.id} with tags: ${tags.join(', ')}`);
+                                  
+                                  await deletePackageVersion(version.id, isOrg);
+                                  
+                                  deletedCount++;
+                                  console.log(`✅ Deleted version ${version.id}`);
+                              } catch (error) {
+                                  console.error(`❌ Failed to delete version ${version.id}:`, error.message);
+                              }
+                          }
+                          
+                          console.log(`\n✅ Successfully deleted ${deletedCount} of ${prVersions.length} PR image versions`);
+                      } catch (error) {
+                          if (error.status === 404) {
+                              console.log('ℹ️ Package not found or no versions exist');
+                          } else if (error.status === 403) {
+                              console.log('⚠️ Permission denied. Ensure GH_TOKEN has delete:packages permission');
+                              console.log('   You may need to manually delete via:');
+                              console.log(`   https://github.com/${owner}/${repo.repo}/pkgs/container/${repoLower}`);
+                          } else {
+                              console.error('❌ Error deleting package versions:', error.message);
+                              throw error;
+                          }
+                      }
