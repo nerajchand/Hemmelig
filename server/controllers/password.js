@@ -6,6 +6,41 @@ import prisma from '../services/prisma.js';
 
 const DEFAULT_EXPIRATION = 60 * 60 * 24 * 1000; // 1 day in milliseconds
 
+// Format date to Australia/Sydney timezone in ISO format
+function formatDateToSydney(date) {
+    // Use Intl.DateTimeFormat to get the date parts in Sydney timezone
+    const formatter = new Intl.DateTimeFormat('en-AU', {
+        timeZone: 'Australia/Sydney',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    });
+
+    const parts = formatter.formatToParts(date);
+    const year = parts.find((p) => p.type === 'year').value;
+    const month = parts.find((p) => p.type === 'month').value;
+    const day = parts.find((p) => p.type === 'day').value;
+    const hour = parts.find((p) => p.type === 'hour').value;
+    const minute = parts.find((p) => p.type === 'minute').value;
+    const second = parts.find((p) => p.type === 'second').value;
+
+    // Get timezone offset for Sydney at this specific date/time
+    const sydneyDate = new Date(date.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const offsetMs = sydneyDate.getTime() - utcDate.getTime();
+    const offsetMinutes = Math.round(offsetMs / (1000 * 60));
+    const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const offsetMins = Math.abs(offsetMinutes) % 60;
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const offsetString = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetString}`;
+}
+
 /**
  * Password Generation API Controller
  *
@@ -29,6 +64,7 @@ async function password(fastify) {
      *   "strict": false,           // Ensure at least one character from each set (default: false)
      *   "ttl": 86400,              // Secret lifetime in seconds (default: 86400 = 1 day)
      *   "maxViews": 1,             // Maximum views before secret is deleted (default: 1)
+     *   "preventBurn": false,      // Prevent secret from being deleted after expiration (default: false, only if feature enabled)
      *   "title": "Generated Password" // Optional title for the secret
      * }
      *
@@ -86,7 +122,7 @@ async function password(fastify) {
                         maxViews: {
                             type: 'integer',
                             minimum: 1,
-                            maximum: 999,
+                            maximum: config.get('secret.maxViewsLimit'),
                             default: 1,
                         },
                         title: {
@@ -112,6 +148,7 @@ async function password(fastify) {
                 strict = false,
                 ttl = 86400,
                 maxViews = 1,
+                preventBurn = false,
                 title,
                 showPassword = false,
             } = request.body;
@@ -129,6 +166,26 @@ async function password(fastify) {
                     error: 'Password length must be between 4 and 128 characters',
                 });
             }
+
+            // Validate maxViews
+            const maxViewsNum = parseInt(maxViews, 10);
+            const maxViewsLimit = config.get('secret.maxViewsLimit');
+            if (isNaN(maxViewsNum) || maxViewsNum < 1 || maxViewsNum > maxViewsLimit) {
+                return reply.code(400).send({
+                    error: `maxViews must be a number between 1 and ${maxViewsLimit}`,
+                });
+            }
+
+            // Validate preventBurn is only used if feature is enabled
+            const enableBurnAfterTime = config.get('secret.enableBurnAfterTime');
+            if (!enableBurnAfterTime && preventBurn === false) {
+                return reply.code(400).send({
+                    error: 'Burn after time feature is disabled for this instance',
+                });
+            }
+
+            // If feature is disabled, force preventBurn to true
+            const finalPreventBurn = enableBurnAfterTime ? preventBurn : true;
 
             try {
                 // Generate the password
@@ -155,7 +212,8 @@ async function password(fastify) {
                 const secret = await prisma.secret.create({
                     data: {
                         title: encryptedTitle,
-                        maxViews,
+                        maxViews: maxViewsNum,
+                        preventBurn: finalPreventBurn,
                         data: encryptedPassword,
                         user_id: request?.user?.user_id ?? null,
                         expiresAt: new Date(
@@ -211,7 +269,7 @@ async function password(fastify) {
                 const response = {
                     url: shareableUrl,
                     secretId: secret.id,
-                    expiresAt: secret.expiresAt,
+                    expiresAt: formatDateToSydney(secret.expiresAt),
                 };
 
                 // Only include password if explicitly requested (POST uses boolean)
@@ -287,6 +345,10 @@ async function password(fastify) {
                             type: 'string',
                             pattern: '^\\d+$',
                         },
+                        preventBurn: {
+                            type: 'string',
+                            enum: ['true', 'false'],
+                        },
                         showPassword: {
                             type: 'string',
                             enum: ['true', 'false'],
@@ -306,6 +368,7 @@ async function password(fastify) {
                 strict = 'false',
                 ttl = '86400',
                 maxViews = '1',
+                preventBurn = 'false',
                 showPassword = 'false',
             } = request.query;
 
@@ -324,11 +387,24 @@ async function password(fastify) {
             }
 
             const maxViewsNum = parseInt(maxViews, 10);
-            if (isNaN(maxViewsNum) || maxViewsNum < 1 || maxViewsNum > 999) {
+            const maxViewsLimit = config.get('secret.maxViewsLimit');
+            if (isNaN(maxViewsNum) || maxViewsNum < 1 || maxViewsNum > maxViewsLimit) {
                 return reply.code(400).send({
-                    error: 'maxViews must be a number between 1 and 999',
+                    error: `maxViews must be a number between 1 and ${maxViewsLimit}`,
                 });
             }
+
+            // Validate preventBurn is only used if feature is enabled
+            const enableBurnAfterTime = config.get('secret.enableBurnAfterTime');
+            const preventBurnBool = preventBurn === 'true';
+            if (!enableBurnAfterTime && !preventBurnBool) {
+                return reply.code(400).send({
+                    error: 'Burn after time feature is disabled for this instance',
+                });
+            }
+
+            // If feature is disabled, force preventBurn to true
+            const finalPreventBurn = enableBurnAfterTime ? preventBurnBool : true;
 
             const options = {
                 numbers: numbers === 'true',
@@ -363,6 +439,7 @@ async function password(fastify) {
                 const secret = await prisma.secret.create({
                     data: {
                         maxViews: maxViewsNum,
+                        preventBurn: finalPreventBurn,
                         data: encryptedPassword,
                         user_id: request?.user?.user_id ?? null,
                         expiresAt: new Date(Date.now() + ttlNum * 1000),
@@ -416,7 +493,7 @@ async function password(fastify) {
                 const response = {
                     url: shareableUrl,
                     secretId: secret.id,
-                    expiresAt: secret.expiresAt,
+                    expiresAt: formatDateToSydney(secret.expiresAt),
                 };
 
                 // Only include password if explicitly requested
