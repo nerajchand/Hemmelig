@@ -53,13 +53,23 @@ const ApplicationShell = () => {
 
                     {/* Always visible links */}
                     <a
-                        href="https://github.com/nine-digital/service-onetimesecret"
+                        href="https://github.com/nerajchand/Hemmelig"
                         rel="noreferrer"
                         className="text-xs text-gray-400 hover:text-gray-200 uppercase transition-colors"
                     >
                         <span className="text-xs">
                             Github - {config.get('git.tag')} ({config.get('git.sha')})
                         </span>
+                    </a>
+
+                    <span className="text-gray-600">|</span>
+
+                    <a
+                        href="https://github.com/nine-digital/service-secretsharing"
+                        rel="noreferrer"
+                        className="text-xs text-gray-400 hover:text-gray-200 uppercase transition-colors"
+                    >
+                        <span className="text-xs">Deployment</span>
                     </a>
                 </div>
             </footer>

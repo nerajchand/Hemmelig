@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     hemmelig:
-        image: ghcr.io/nerajchand/hemmelig:1.6.1
+        image: ghcr.io/nerajchand/hemmelig:latest
         hostname: hemmelig
         init: true
         volumes:
