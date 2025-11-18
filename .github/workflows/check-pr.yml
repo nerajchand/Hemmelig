@@ -383,25 +383,6 @@ jobs:
                           }
                       }
                       
-                      // Helper function to get detailed version information
-                      async function getPackageVersionDetails(versionId, isOrg) {
-                          if (isOrg) {
-                              return await github.rest.packages.getPackageVersionForOrganization({
-                                  package_type: 'container',
-                                  package_name: repoLower,
-                                  org: owner,
-                                  package_version_id: versionId
-                              });
-                          } else {
-                              return await github.rest.packages.getPackageVersionForUser({
-                                  package_type: 'container',
-                                  package_name: repoLower,
-                                  username: owner,
-                                  package_version_id: versionId
-                              });
-                          }
-                      }
-                      
                       // Helper function to delete a package version
                       async function deletePackageVersion(versionId, isOrg) {
                           if (isOrg) {
@@ -431,9 +412,8 @@ jobs:
                           console.log('\n📦 All package versions:');
                           versions.forEach(v => {
                               const tags = v.metadata?.container?.tags || [];
-                              const digest = v.name || v.package_html_url?.split('/').pop() || 'unknown';
-                              const url = v.package_html_url || 'N/A';
-                              console.log(`  Version ${v.id}: tags=[${tags.length > 0 ? tags.join(', ') : '(untagged)'}], digest=${digest}, url=${url}`);
+                              const digest = v.name || 'unknown';
+                              console.log(`  Version ${v.id}: tags=[${tags.join(', ')}], digest=${digest}`);
                           });
                           
                           // Step 1: Find all versions that directly match PR tags
@@ -451,93 +431,33 @@ jobs:
                               console.log(`  ✓ Version ${v.id}: [${tags.join(', ')}]`);
                           });
                           
-                          // Step 2: Get digests from PR-tagged versions
-                          // The digest might be in version.name, or we need to get it from the version details
+                          // Step 2: Find all versions that share the same digest as PR-tagged versions
+                          // When multiple tags point to the same image, they share the same digest
                           const prDigests = new Set();
-                          const prVersionIds = new Set();
+                          prVersionsByTag.forEach(version => {
+                              // The digest is typically in version.name or we can use the version ID
+                              // Actually, each tag creates a separate version, so we need to delete all of them
+                              prDigests.add(version.id);
+                          });
                           
-                          // First, collect all PR-tagged version IDs and get their digests
-                          console.log(`\n🔍 Fetching detailed information for ${prVersionsByTag.length} PR-tagged versions...`);
-                          for (const version of prVersionsByTag) {
-                              prVersionIds.add(version.id);
-                              try {
-                                  const details = await getPackageVersionDetails(version.id, isOrg);
-                                  // The digest might be in different places depending on API version
-                                  const digest = details.data.name || 
-                                                details.data.metadata?.container?.digest ||
-                                                details.data.url?.match(/sha256:[a-f0-9]+/)?.[0];
-                                  if (digest) {
-                                      prDigests.add(digest);
-                                      console.log(`  Version ${version.id}: digest=${digest}`);
-                                  }
-                              } catch (error) {
-                                  console.log(`  ⚠️ Could not get details for version ${version.id}: ${error.message}`);
-                                  // Fallback: try version.name if available
-                                  if (version.name) {
-                                      prDigests.add(version.name);
-                                  }
-                              }
-                          }
-                          
-                          console.log(`\n🔑 PR version IDs: [${Array.from(prVersionIds).join(', ')}]`);
-                          console.log(`🔑 PR digests found: [${Array.from(prDigests).join(', ')}]`);
-                          
-                          // Step 3: Find all versions that match PR tags OR share the same digest
-                          // Also include untagged versions that might be related
+                          // Step 3: Also find versions by checking if any tag matches (in case tags are stored differently)
+                          // Some versions might have the tag in a different format
                           const allPrVersions = versions.filter(version => {
                               const tags = version.metadata?.container?.tags || [];
+                              const versionId = version.id.toString();
                               
-                              // Already identified as PR version
-                              if (prVersionIds.has(version.id)) {
+                              // Check if it's already in our list
+                              if (prDigests.has(version.id)) {
                                   return true;
                               }
                               
-                              // Check if tags match PR pattern
+                              // Check tags
                               const hasPrTag = tags.some(tag => 
                                   tag === `pr-${prNumber}` || 
                                   tag.startsWith(`pr-${prNumber}-`)
                               );
                               
-                              if (hasPrTag) {
-                                  return true;
-                              }
-                              
-                              // Check if digest matches (for untagged versions)
-                              // First try to get detailed version info to find the actual digest
-                              if (tags.length === 0 && prDigests.size > 0) {
-                                  try {
-                                      const details = await getPackageVersionDetails(version.id, isOrg);
-                                      const digest = details.data.name || 
-                                                    details.data.metadata?.container?.digest ||
-                                                    details.data.url?.match(/sha256:[a-f0-9]+/)?.[0];
-                                      
-                                      if (digest && prDigests.has(digest)) {
-                                          console.log(`  → Found untagged version ${version.id} with matching digest: ${digest}`);
-                                          return true;
-                                      }
-                                  } catch (error) {
-                                      // Fallback: try version.name if available
-                                      if (version.name && prDigests.has(version.name)) {
-                                          console.log(`  → Found untagged version ${version.id} with matching digest (fallback): ${version.name}`);
-                                          return true;
-                                      }
-                                  }
-                              } else if (version.name && prDigests.has(version.name)) {
-                                  console.log(`  → Found untagged version ${version.id} with matching digest: ${version.name}`);
-                                  return true;
-                              }
-                              
-                              // Also check if version URL or other identifiers suggest it's a PR version
-                              // Some versions might not have tags in metadata but are still PR-related
-                              if (version.package_html_url) {
-                                  const urlLower = version.package_html_url.toLowerCase();
-                                  if (urlLower.includes(`pr-${prNumber}`)) {
-                                      console.log(`  → Found version ${version.id} with PR in URL: ${version.package_html_url}`);
-                                      return true;
-                                  }
-                              }
-                              
-                              return false;
+                              return hasPrTag;
                           });
                           
                           // Remove duplicates by version ID
@@ -548,8 +468,7 @@ jobs:
                           console.log(`\n🎯 Total unique PR versions to delete: ${uniquePrVersions.length}`);
                           uniquePrVersions.forEach(v => {
                               const tags = v.metadata?.container?.tags || [];
-                              const tagStr = tags.length > 0 ? tags.join(', ') : '(untagged)';
-                              console.log(`  → Version ${v.id}: tags=[${tagStr}]`);
+                              console.log(`  → Version ${v.id}: [${tags.join(', ')}]`);
                           });
                           
                           if (uniquePrVersions.length === 0) {
@@ -563,8 +482,7 @@ jobs:
                           for (const version of uniquePrVersions) {
                               try {
                                   const tags = version.metadata?.container?.tags || [];
-                                  const tagStr = tags.length > 0 ? tags.join(', ') : '(untagged)';
-                                  console.log(`\n🗑️ Deleting version ${version.id} with tags: [${tagStr}]`);
+                                  console.log(`\n🗑️ Deleting version ${version.id} with tags: [${tags.join(', ')}]`);
                                   
                                   await deletePackageVersion(version.id, isOrg);
                                   
