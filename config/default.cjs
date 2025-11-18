@@ -24,6 +24,17 @@ const {
     SECRET_RATE_LIMIT_TIME_WINDOW = 60,
     SECRET_ANALYTICS_ENABLED = 'true',
     SECRET_ANALYTICS_HMAC_SECRET = '1234567890',
+    // Instance settings defaults
+    SECRET_READ_ONLY = 'false',
+    SECRET_DISABLE_USERS = 'false',
+    SECRET_DISABLE_USER_ACCOUNT_CREATION = 'false',
+    SECRET_DISABLE_IP_RESTRICTION = 'false',
+    SECRET_DISABLE_FILE_UPLOAD = 'false',
+    SECRET_RESTRICT_ORGANIZATION_EMAIL = '',
+    // Secret settings
+    SECRET_MAX_VIEWS_LIMIT = '100',
+    SECRET_ENABLE_BURN_AFTER_TIME = 'true',
+    SECRET_DISABLE_PUBLIC_SECRETS = 'false',
     NODE_ENV = 'development',
 } = process.env;
 
@@ -84,6 +95,21 @@ const config = {
         enabled: JSON.parse(SECRET_ANALYTICS_ENABLED),
         hmacSecret: SECRET_ANALYTICS_HMAC_SECRET,
     },
+    // Instance settings
+    instance: {
+        readOnly: JSON.parse(SECRET_READ_ONLY),
+        disableUsers: JSON.parse(SECRET_DISABLE_USERS),
+        disableUserAccountCreation: JSON.parse(SECRET_DISABLE_USER_ACCOUNT_CREATION),
+        disableIpRestriction: JSON.parse(SECRET_DISABLE_IP_RESTRICTION),
+        disableFileUpload: JSON.parse(SECRET_DISABLE_FILE_UPLOAD),
+        restrictOrganizationEmail: SECRET_RESTRICT_ORGANIZATION_EMAIL,
+    },
+    // Secret settings
+    secret: {
+        maxViewsLimit: Number(SECRET_MAX_VIEWS_LIMIT),
+        enableBurnAfterTime: JSON.parse(SECRET_ENABLE_BURN_AFTER_TIME),
+        disablePublicSecrets: JSON.parse(SECRET_DISABLE_PUBLIC_SECRETS),
+    },
     logger: true,
     cors: '*',
     __client_config: {
@@ -96,6 +122,11 @@ const config = {
             analytics: {
                 enabled: JSON.parse(SECRET_ANALYTICS_ENABLED),
             },
+        },
+        secret: {
+            maxViewsLimit: Number(SECRET_MAX_VIEWS_LIMIT),
+            enableBurnAfterTime: JSON.parse(SECRET_ENABLE_BURN_AFTER_TIME),
+            disablePublicSecrets: JSON.parse(SECRET_DISABLE_PUBLIC_SECRETS),
         },
     },
 };

@@ -1,4 +1,5 @@
 import config from 'config';
+import getEmailDomain from '../shared/helpers/get-email-domain.js';
 import adminSettings from './adminSettings.js';
 import { hash } from './helpers/password.js';
 import prisma from './services/prisma.js';
@@ -15,16 +16,40 @@ export function updateAdminSettings(settings = {}) {
 
 // Create admin settings we can use by the server
 async function createAdminSettings() {
+    // Get default values from environment variables
+    const instanceConfig = config.get('instance');
+
+    // Process restrict_organization_email: support comma-separated list
+    // Convert to comma-separated domains (extract domain from emails if needed)
+    let restrictEmailDomains = '';
+    if (instanceConfig.restrictOrganizationEmail) {
+        const domains = instanceConfig.restrictOrganizationEmail
+            .split(',')
+            .map((email) => email.trim())
+            .filter((email) => email.length > 0)
+            .map((email) => getEmailDomain(email));
+        restrictEmailDomains = domains.join(',');
+    }
+
     const settings = await prisma.settings.upsert({
         where: { id: 'admin_settings' },
-        update: {},
+        update: {
+            // Update from environment variables if they're set
+            disable_users: instanceConfig.disableUsers,
+            disable_user_account_creation: instanceConfig.disableUserAccountCreation,
+            read_only: instanceConfig.readOnly,
+            disable_file_upload: instanceConfig.disableFileUpload,
+            hide_allowed_ip_input: instanceConfig.disableIpRestriction,
+            restrict_organization_email: restrictEmailDomains,
+        },
         create: {
             id: 'admin_settings',
-            disable_users: false,
-            disable_user_account_creation: false,
-            read_only: false,
-            disable_file_upload: false,
-            restrict_organization_email: '',
+            disable_users: instanceConfig.disableUsers,
+            disable_user_account_creation: instanceConfig.disableUserAccountCreation,
+            read_only: instanceConfig.readOnly,
+            disable_file_upload: instanceConfig.disableFileUpload,
+            hide_allowed_ip_input: instanceConfig.disableIpRestriction,
+            restrict_organization_email: restrictEmailDomains,
         },
     });
 
