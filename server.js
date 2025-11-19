@@ -29,6 +29,7 @@ import usersRoute from './server/controllers/admin/users.js';
 import analyticsRoute from './server/controllers/analytics.js';
 import authenticationRoute from './server/controllers/authentication.js';
 import downloadRoute from './server/controllers/download.js';
+import encryptRoute from './server/controllers/encrypt.js';
 import healthzRoute from './server/controllers/healthz.js';
 import passwordRoute from './server/controllers/password.js';
 import secretRoute from './server/controllers/secret.js';
@@ -174,6 +175,7 @@ fastify.register(adminSettingsRoute, {
 });
 
 fastify.register(downloadRoute, { prefix: '/api/download' });
+fastify.register(encryptRoute, { prefix: '/api/encrypt' });
 fastify.register(secretRoute, { prefix: '/api/secret' });
 fastify.register(passwordRoute, { prefix: '/api/password' });
 fastify.register(statsRoute, { prefix: '/api/stats' });
