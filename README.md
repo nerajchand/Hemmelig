@@ -256,6 +256,69 @@ curl "https://your-instance.com/api/password/generate?length=20&numbers=true&sym
 - Secrets are deleted after reaching `maxViews` limit
 - The password is only returned in the response if `showPassword: true` is set
 
+## Secret Encryption API
+
+Hemmelig provides a REST API endpoint for encrypting secrets/passwords and automatically creating shareable secret links. This is useful when you already have a secret/password that you want to encrypt and share securely.
+
+### Endpoints
+
+- **POST** `/api/encrypt` - Encrypt secret with JSON request body
+- **GET** `/api/encrypt` - Encrypt secret with query parameters
+
+### POST Request Example
+
+```bash
+curl -X POST https://your-instance.com/api/encrypt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "my-secret-password",
+    "ttl": 3600,
+    "maxViews": 1,
+    "title": "My Encrypted Secret",
+    "preventBurn": false
+  }'
+```
+
+**Response:**
+```json
+{
+  "url": "https://your-instance.com/secret/abc123#encryptionkey",
+  "secretId": "abc123",
+  "expiresAt": "2024-01-02T00:00:00.000Z"
+}
+```
+
+### GET Request Example
+
+```bash
+curl "https://your-instance.com/api/encrypt?password=my-secret-password&ttl=3600&maxViews=1&title=My%20Secret"
+```
+
+### Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `password` | string | **Required** | The secret/password to encrypt (in plain text) |
+| `ttl` | integer | `86400` | Secret lifetime in seconds (1 day). Must be a valid TTL value |
+| `maxViews` | integer | `1` | Maximum views before secret is deleted (min: 1, max: 999) |
+| `title` | string | - | Optional title for the secret (max: 255 characters) |
+| `preventBurn` | boolean | `false` | Prevent secret from being deleted after expiration (only if feature enabled) |
+
+### Use Cases
+
+- **Encrypting existing passwords** for secure sharing
+- **CI/CD pipelines** that need to securely share pre-existing credentials
+- **Scripts** that need to encrypt and share secrets programmatically
+- **Integration** with other tools that need to encrypt secrets on-the-fly
+
+### Security Notes
+
+- The provided password/secret is encrypted before being stored
+- The decryption key is only included in the URL fragment (never sent to server)
+- Secrets automatically expire based on the `ttl` parameter
+- Secrets are deleted after reaching `maxViews` limit
+- The plain text password is never returned in the response for security
+
 ## Environment variables
 
 | ENV Variable                         | Description                                                  | Default              |

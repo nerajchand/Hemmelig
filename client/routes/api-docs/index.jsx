@@ -451,6 +451,96 @@ const ApiDocs = () => {
                         </div>
                     </div>
 
+                    {/* Secret Encryption Endpoints */}
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-white mb-4">Secret Encryption</h3>
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="inline-block px-2 py-1 text-sm font-medium bg-green-500/20 text-green-400 rounded">
+                                        POST
+                                    </span>
+                                    <span className="ml-2 text-gray-300">/api/encrypt</span>
+                                </div>
+                                <p className="text-gray-300 text-sm">
+                                    Encrypt a provided secret/password, create a secret, and return
+                                    a shareable URL (useful when you already have a secret to
+                                    encrypt)
+                                </p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {JSON.stringify(
+                                            {
+                                                password: 'my-secret-password',
+                                                ttl: 86400,
+                                                maxViews: 1,
+                                                title: 'My Encrypted Secret',
+                                                preventBurn: false,
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    The <code className="text-gray-300">password</code> field is
+                                    required and must be a non-empty string. All other fields are
+                                    optional. Defaults: ttl=86400 (1 day), maxViews=1,
+                                    preventBurn=false.
+                                </p>
+                                <p className="text-gray-400 text-xs mt-2">Example response:</p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {JSON.stringify(
+                                            {
+                                                url: 'https://secret.local/secret/abc123#encryptionkey',
+                                                secretId: 'abc123',
+                                                expiresAt: '2024-01-02T00:00:00.000Z',
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    Note: The plain text password is never returned in the response
+                                    for security. The returned URL can be shared with anyone to
+                                    retrieve the secret through the web app.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="inline-block px-2 py-1 text-sm font-medium bg-blue-500/20 text-blue-400 rounded">
+                                        GET
+                                    </span>
+                                    <span className="ml-2 text-gray-300">
+                                        /api/encrypt?password=my-secret&ttl=3600&maxViews=1
+                                    </span>
+                                </div>
+                                <p className="text-gray-300 text-sm">
+                                    Encrypt a secret and create a shareable link using query
+                                    parameters (convenient for simple GET requests)
+                                </p>
+                                <pre className="bg-gray-900/50 p-3 rounded-md text-gray-300 overflow-x-auto">
+                                    <code>
+                                        {`GET /api/encrypt?password=my-secret-password&ttl=3600&maxViews=1&title=My%20Secret`}
+                                    </code>
+                                </pre>
+                                <p className="text-gray-400 text-xs mt-2">
+                                    The <code className="text-gray-300">password</code> query
+                                    parameter is required. The returned URL can be shared with
+                                    anyone to retrieve the secret through the web app.
+                                </p>
+                                <p className="text-yellow-400 text-xs mt-2">
+                                    ⚠️ Security Note: For sensitive data, prefer using POST instead
+                                    of GET, as GET parameters may appear in server logs and browser
+                                    history.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Admin Endpoints */}
                     <div className="bg-gray-800/50 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-4">
