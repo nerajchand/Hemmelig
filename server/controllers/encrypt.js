@@ -55,7 +55,7 @@ async function encryptSecret(fastify) {
      *
      * Request body:
      * {
-     *   "password": "my-secret-password", // Required: The secret/password to encrypt (in plain text)
+     *   "password": "my-secret-password", // Required: The secret/password to encrypt (supports multi-line text)
      *   "ttl": 86400,                      // Optional: Secret lifetime in seconds (default: 86400 = 1 day)
      *   "maxViews": 1,                     // Optional: Maximum views before secret is deleted (default: 1)
      *   "preventBurn": false,              // Optional: Prevent secret from being deleted after expiration (default: false, only if feature enabled)
@@ -232,7 +232,7 @@ async function encryptSecret(fastify) {
      * Encrypt a secret and create a shareable link with query parameters
      *
      * Query parameters:
-     * - password: The secret/password to encrypt (required)
+     * - password: The secret/password to encrypt (required, supports multi-line text when URL-encoded)
      * - ttl: Secret lifetime in seconds (default: 86400)
      * - maxViews: Maximum views (default: 1)
      * - preventBurn: Prevent burn after expiration (default: false)
