@@ -1,5 +1,4 @@
-version: '3.8'
-
+---
 services:
     hemmelig:
         image: hemmelig:latest
@@ -22,6 +21,8 @@ services:
             - SECRET_MAX_TEXT_SIZE=256 # The max text size for the secret. Is set in kb. i.e. 256 for 256kb
             - SECRET_ANALYTICS_ENABLED=true
             - DATABASE_URL=postgresql://hemmelig:hemmelig@postgres:5432/hemmelig # Prisma connection string
+            # Editor settings
+            # - SECRET_ADVANCED_COPY=true # Enable advanced copy options (HTML & Base64)
             # Instance settings (all default to "false" if not set)
             # - SECRET_READ_ONLY=true # Enable read-only mode
             # - SECRET_DISABLE_USERS=true # Disable user functionality

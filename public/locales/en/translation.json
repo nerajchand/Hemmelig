@@ -320,10 +320,12 @@
             "cancel": "Cancel",
             "insert": "Insert"
         },
+        "copy": "Copy",
         "copy_success": {
             "html": "HTML copied!",
             "text": "Plain text copied!",
-            "base64": "Base64 copied!"
+            "base64": "Base64 copied!",
+            "copied": "Copied!"
         }
     }
 }

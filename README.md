@@ -333,7 +333,7 @@ curl "https://your-instance.com/api/encrypt?password=my-secret-password&ttl=3600
 | `SECRET_ROOT_EMAIL`                   | Root account email                                           | `groot@hemmelig.app` |
 | `SECRET_FILE_SIZE`                    | Max upload file size (in MB)                                 | `4`                  |
 | `SECRET_FORCED_LANGUAGE`              | Default language for the application                         | `en`                 |
-| `SECRET_UPLOAD_RESTRICTION`           | Restrict uploads to signed-in users ("true"/"false")         | `"true"`             |
+| `SECRET_UPLOAD_RESTRICTION`           | Restrict uploads to signed-in users                          | `"true"`             |
 | `SECRET_RATE_LIMIT_MAX`               | Max requests per rate limit window                           | `1000`               |
 | `SECRET_RATE_LIMIT_TIME_WINDOW`       | Rate limit time window (seconds)                             | `60`                 |
 | `SECRET_DO_SPACES_ENDPOINT`           | DigitalOcean Spaces/S3 endpoint                              | `""`                 |
@@ -346,8 +346,9 @@ curl "https://your-instance.com/api/encrypt?password=my-secret-password&ttl=3600
 | `SECRET_AWS_S3_SECRET`                | AWS S3 secret key                                            | `""`                 |
 | `SECRET_AWS_S3_BUCKET`                | AWS S3 bucket name                                           | `""`                 |
 | `SECRET_AWS_S3_FOLDER`                | AWS S3 folder for uploads                                    | `""`                 |
-| `SECRET_ANALYTICS_ENABLED`            | Enable analytics tracking ("true"/"false")                   | `"false"`            |
+| `SECRET_ANALYTICS_ENABLED`            | Enable analytics tracking                                    | `"false"`            |
 | `SECRET_ANALYTICS_HMAC_SECRET`        | HMAC secret for analytics tracking                           | `"1234567890"`       |
+| `SECRET_ADVANCED_COPY`                | Show advanced copy options (HTML & Base64)                   | `"false"`            |
 | `SECRET_READ_ONLY`                    | Read-only mode (only admin/creator can create secrets)       | `"false"`            |
 | `SECRET_DISABLE_USERS`                | Disable user functionality                                   | `"false"`            |
 | `SECRET_DISABLE_USER_ACCOUNT_CREATION`| Disable user account registration                            | `"false"`            |
