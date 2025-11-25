@@ -24,6 +24,8 @@ const {
     SECRET_RATE_LIMIT_TIME_WINDOW = 60,
     SECRET_ANALYTICS_ENABLED = 'true',
     SECRET_ANALYTICS_HMAC_SECRET = '1234567890',
+    // Editor settings
+    SECRET_ADVANCED_COPY = 'false',
     // Instance settings defaults
     SECRET_READ_ONLY = 'false',
     SECRET_DISABLE_USERS = 'false',
@@ -95,6 +97,10 @@ const config = {
         enabled: JSON.parse(SECRET_ANALYTICS_ENABLED),
         hmacSecret: SECRET_ANALYTICS_HMAC_SECRET,
     },
+    // Editor settings
+    editor: {
+        advancedCopy: JSON.parse(SECRET_ADVANCED_COPY),
+    },
     // Instance settings
     instance: {
         readOnly: JSON.parse(SECRET_READ_ONLY),
@@ -127,6 +133,9 @@ const config = {
             maxViewsLimit: Number(SECRET_MAX_VIEWS_LIMIT),
             enableBurnAfterTime: JSON.parse(SECRET_ENABLE_BURN_AFTER_TIME),
             disablePublicSecrets: JSON.parse(SECRET_DISABLE_PUBLIC_SECRETS),
+        },
+        editor: {
+            advancedCopy: JSON.parse(SECRET_ADVANCED_COPY),
         },
     },
 };
