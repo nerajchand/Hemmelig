@@ -1,6 +1,15 @@
 {
   "plugins": [
-    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "parserOpts": {
+          "headerPattern": "^[^A-Za-z0-9]*([A-Za-z]+)(?:\\(([^)]+)\\))?:\\s(.*)$",
+          "headerCorrespondence": ["type", "scope", "subject"]
+        }
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     "@semantic-release/npm",

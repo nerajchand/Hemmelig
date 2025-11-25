@@ -1,0 +1,30 @@
+{
+    "branches": ["main"],
+    "plugins": [
+        [
+            "@semantic-release/commit-analyzer",
+            {
+                "preset": "conventionalcommits",
+                "parserOpts": {
+                    "headerPattern": "^[^A-Za-z0-9]*([A-Za-z]+)(?:\\(([^)]+)\\))?:\\s(.*)$",
+                    "headerCorrespondence": ["type", "scope", "subject"]
+                }
+            }
+        ],
+        "@semantic-release/release-notes-generator",
+        "@semantic-release/changelog",
+        [
+            "@semantic-release/github",
+            {
+                "assets": [
+                    {
+                        "path": "dist.zip",
+                        "label": "Distribution"
+                    }
+                ],
+                "success": false,
+                "fail": false
+            }
+        ]
+    ]
+}
