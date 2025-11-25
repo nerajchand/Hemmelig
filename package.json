@@ -4,9 +4,23 @@
       "main"
     ],
     "plugins": [
-      "@semantic-release/commit-analyzer",
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "parserOpts": {
+            "headerPattern": "^[^A-Za-z0-9]*([A-Za-z]+)(?:\\(([^)]+)\\))?:\\s(.*)$",
+            "headerCorrespondence": [
+              "type",
+              "scope",
+              "subject"
+            ]
+          }
+        }
+      ],
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
+      "@semantic-release/npm",
       [
         "@semantic-release/github",
         {
@@ -111,6 +125,7 @@
     "autoprefixer": "^10.4.20",
     "buffer": "^6.0.3",
     "classcat": "^5.0.3",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "dayjs": "^1.11.7",
     "deepmerge": "^4.2.2",
     "dlv": "^1.1.3",
