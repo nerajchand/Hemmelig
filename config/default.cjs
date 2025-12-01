@@ -37,6 +37,7 @@ const {
     SECRET_MAX_VIEWS_LIMIT = '100',
     SECRET_ENABLE_BURN_AFTER_TIME = 'true',
     SECRET_DISABLE_PUBLIC_SECRETS = 'false',
+    SECRET_TRUST_PROXY = 'true',
     NODE_ENV = 'development',
 } = process.env;
 
@@ -45,6 +46,7 @@ const config = {
     env: NODE_ENV,
     host: SECRET_HOST,
     port: SECRET_PORT,
+    trustProxy: JSON.parse(SECRET_TRUST_PROXY),
     upload_restriction: JSON.parse(SECRET_UPLOAD_RESTRICTION),
     rateLimit: {
         max: Number(SECRET_RATE_LIMIT_MAX),

@@ -54,6 +54,7 @@ const staticPath = path.join(__dirname, !isDev ? 'client/build' : 'client');
 const fastify = importFastify({
     logger: config.get('logger'),
     bodyLimit: MAX_FILE_BYTES,
+    trustProxy: config.get('trustProxy'),
 });
 
 await fastify.register(FastifyVite, {

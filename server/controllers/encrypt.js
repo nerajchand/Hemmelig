@@ -180,31 +180,14 @@ async function encryptSecret(fastify) {
                 });
 
                 // Build the shareable URL
-                // Use request host if SECRET_HOST is not set or is a placeholder
-                const hostConfig = config.get('host');
-                let baseUrl;
-
-                if (
-                    !hostConfig ||
-                    hostConfig === 'localhost' ||
-                    hostConfig === '!changeme!' ||
-                    hostConfig.includes('changeme')
-                ) {
-                    // Use the request host from headers
-                    // Check for protocol from forwarded headers or connection
-                    const forwardedProto = request.headers['x-forwarded-proto'];
-                    const isSecure =
-                        request.secure ||
-                        request.headers['x-forwarded-ssl'] === 'on' ||
-                        forwardedProto === 'https';
-                    const protocol = forwardedProto || (isSecure ? 'https' : 'http');
-                    const host = request.headers.host || request.hostname || 'localhost:3000';
-                    baseUrl = `${protocol}://${host}`;
-                } else if (hostConfig.startsWith('http')) {
-                    baseUrl = hostConfig;
-                } else {
-                    baseUrl = `https://${hostConfig}`;
-                }
+                const forwardedProto = request.headers['x-forwarded-proto'];
+                const isSecure =
+                    request.secure ||
+                    request.headers['x-forwarded-ssl'] === 'on' ||
+                    forwardedProto === 'https';
+                const protocol = forwardedProto || (isSecure ? 'https' : 'http');
+                const host = request.headers.host || request.hostname || 'localhost:3000';
+                const baseUrl = `${protocol}://${host}`;
 
                 const encryptionKeyBase64 = Buffer.from(encryptionKey).toString('base64');
                 const shareableUrl = `${baseUrl}/secret/${secret.id}#${encryptionKeyBase64}`;
@@ -347,31 +330,14 @@ async function encryptSecret(fastify) {
                 });
 
                 // Build the shareable URL
-                // Use request host if SECRET_HOST is not set or is a placeholder
-                const hostConfig = config.get('host');
-                let baseUrl;
-
-                if (
-                    !hostConfig ||
-                    hostConfig === 'localhost' ||
-                    hostConfig === '!changeme!' ||
-                    hostConfig.includes('changeme')
-                ) {
-                    // Use the request host from headers
-                    // Check for protocol from forwarded headers or connection
-                    const forwardedProto = request.headers['x-forwarded-proto'];
-                    const isSecure =
-                        request.secure ||
-                        request.headers['x-forwarded-ssl'] === 'on' ||
-                        forwardedProto === 'https';
-                    const protocol = forwardedProto || (isSecure ? 'https' : 'http');
-                    const host = request.headers.host || request.hostname || 'localhost:3000';
-                    baseUrl = `${protocol}://${host}`;
-                } else if (hostConfig.startsWith('http')) {
-                    baseUrl = hostConfig;
-                } else {
-                    baseUrl = `https://${hostConfig}`;
-                }
+                const forwardedProto = request.headers['x-forwarded-proto'];
+                const isSecure =
+                    request.secure ||
+                    request.headers['x-forwarded-ssl'] === 'on' ||
+                    forwardedProto === 'https';
+                const protocol = forwardedProto || (isSecure ? 'https' : 'http');
+                const host = request.headers.host || request.hostname || 'localhost:3000';
+                const baseUrl = `${protocol}://${host}`;
 
                 const encryptionKeyBase64 = Buffer.from(encryptionKey).toString('base64');
                 const shareableUrl = `${baseUrl}/secret/${secret.id}#${encryptionKeyBase64}`;
