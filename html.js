@@ -5,8 +5,9 @@ export default `<!DOCTYPE html>
         <meta charset="utf-8" />
         <title>One Time Secret - Paste a password, confidential message, or private data.</title>
 
-        <link rel="icon" href="/static/favicon.ico" />
-        <link rel="shortcut icon" href="/static/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/icon-96x96.png">
 
         <link rel="manifest" href="/static/manifest.json" />
         <!-- Primary Meta Tags -->
@@ -27,7 +28,7 @@ export default `<!DOCTYPE html>
             property="og:description"
             content="Ensure your sensitive data remains encrypted, secure, and confidential."
         />
-        <meta property="og:image" content="/static/icons/icon-512x512.png" />
+        <meta property="og:image" content="/static/icons/icon-128x128.png" />
 
         <!-- Twitter -->
         <meta property="twitter:card" content="/static/summary_large_image" />
@@ -40,7 +41,7 @@ export default `<!DOCTYPE html>
             property="twitter:description"
             content="Ensure your sensitive data remains encrypted, secure, and confidential."
         />
-        <meta property="twitter:image" content="/static/icons/icon-512x512.png" />
+        <meta property="twitter:image" content="/static/icons/icon-128x128.png" />
 
         <meta name="theme-color" content="#231e23" />
 
