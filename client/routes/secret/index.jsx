@@ -18,10 +18,44 @@ import Editor from '../../components/editor';
 import ErrorBox from '../../components/error-box';
 
 const getEncryptionKeyHash = (hash) => {
-    const id = '#encryption_key=';
-    if (!hash || !hash.includes(id)) return '';
-    const [_, encryptionKey] = hash.split('#encryption_key=');
-    return encryptionKey;
+    if (!hash) return '';
+    try {
+        return atob(hash.substring(1));
+    } catch (e) {
+        return '';
+    }
+};
+
+// Helper function to convert plain text with newlines to HTML if needed
+const ensureHtmlContent = (text) => {
+    if (!text) return '<p></p>';
+
+    // Check if the text already contains HTML tags
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(text);
+
+    if (hasHtmlTags) {
+        // Already HTML, return as is
+        return text;
+    }
+
+    // Plain text with potential newlines - convert to HTML
+    // Escape HTML characters to prevent XSS
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    // Split by newlines and create paragraphs
+    const lines = escaped.split('\n');
+    const paragraphs = lines
+        .map((line) => line.trim())
+        .filter((line) => line !== '') // Remove empty lines
+        .map((line) => `<p>${line}</p>`)
+        .join('');
+
+    return paragraphs || '<p></p>';
 };
 
 const Secret = () => {
@@ -94,7 +128,8 @@ const Secret = () => {
                     ? json.secret
                     : decrypt(json.secret, decryptionKey + password);
 
-                setSecret(text);
+                // Ensure content is properly formatted as HTML for TipTap editor
+                setSecret(ensureHtmlContent(text));
 
                 if (json.title) {
                     setTitle(

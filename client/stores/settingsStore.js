@@ -8,6 +8,7 @@ const useSettingsStore = create((set) => ({
         disable_file_upload: false,
         restrict_organization_email: '',
         hide_allowed_ip_input: true,
+        disable_public_secrets: false,
     },
     isLoading: true,
     error: null,

@@ -1,3 +1,4 @@
+import config from 'config';
 import getEmailDomain from '../../../shared/helpers/get-email-domain.js';
 import { updateAdminSettings } from '../../bootstrap.js';
 import prisma from '../../services/prisma.js';
@@ -22,10 +23,15 @@ async function settings(fastify) {
                     read_only: false,
                     disable_file_upload: false,
                     restrict_organization_email: '',
+                    disable_public_secrets: config.get('secret.disablePublicSecrets'),
                 };
             }
 
-            return settings;
+            // Add disable_public_secrets from config (not stored in DB, always from env)
+            return {
+                ...settings,
+                disable_public_secrets: config.get('secret.disablePublicSecrets'),
+            };
         } catch (error) {
             request.log.error('Failed to fetch admin settings:', error);
             return reply.code(500).send({ error: 'Internal server error' });
@@ -68,6 +74,17 @@ async function settings(fastify) {
                     restrict_organization_email,
                 } = request.body;
 
+                // Process restrict_organization_email: support comma-separated list
+                let restrictEmailDomains = '';
+                if (restrict_organization_email) {
+                    const domains = restrict_organization_email
+                        .split(',')
+                        .map((email) => email.trim())
+                        .filter((email) => email.length > 0)
+                        .map((email) => getEmailDomain(email));
+                    restrictEmailDomains = domains.join(',');
+                }
+
                 const settings = await prisma.settings.upsert({
                     where: {
                         id: 'admin_settings',
@@ -78,7 +95,7 @@ async function settings(fastify) {
                         hide_allowed_ip_input,
                         read_only,
                         disable_file_upload,
-                        restrict_organization_email: getEmailDomain(restrict_organization_email),
+                        restrict_organization_email: restrictEmailDomains,
                     },
                     create: {
                         id: 'admin_settings',
@@ -87,7 +104,7 @@ async function settings(fastify) {
                         hide_allowed_ip_input,
                         read_only,
                         disable_file_upload,
-                        restrict_organization_email: getEmailDomain(restrict_organization_email),
+                        restrict_organization_email: restrictEmailDomains,
                     },
                 });
 

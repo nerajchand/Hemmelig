@@ -1,17 +1,55 @@
 {
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "parserOpts": {
+            "headerPattern": "^[^A-Za-z0-9]*([A-Za-z]+)(?:\\(([^)]+)\\))?:\\s(.*)$",
+            "headerCorrespondence": [
+              "type",
+              "scope",
+              "subject"
+            ]
+          }
+        }
+      ],
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist.zip",
+              "label": "Distribution"
+            }
+          ],
+          "success": false,
+          "fail": false
+        }
+      ]
+    ]
+  },
   "name": "hemmelig",
   "version": "6.0.0",
   "description": "Paste a password, secret message or private information",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "prisma migrate deploy && node server.js",
+    "start": "node server.js",
     "test": "mocha tests/**/*.test.js --reporter nyan && hurl --test tests/api/*.hurl",
     "test-watch": "mocha --watch tests/**/*.test.js --reporter nyan",
     "build": "node pre.js && vite build",
     "dev": "npm run server-dev",
     "server-dev": "prisma migrate dev && NODE_ENV=development node pre.js && NODE_ENV=development node server.js --dev",
     "docker-build": "docker build -t hemmelig .",
+    "docker-build-multiarch": "./docker-build-multiarch.sh",
+    "docker-build-multiarch-push": "PUSH=true ./docker-build-multiarch.sh",
     "docker-run": "docker run -p 3000:3000 -d --name=hemmelig -v ./data/hemmelig/:/var/tmp/hemmelig/upload/files -v ./database/:/home/node/hemmelig/database/ hemmelig",
     "production-test": "npm run docker-build && npm run docker-run",
     "prepare": "husky install",
@@ -24,12 +62,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HemmeligOrg/Hemmelig.app.git"
+    "url": "git+https://github.com/nerajchand/Hemmelig.git"
   },
   "author": "Bjarne Øverli",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/HemmeligOrg/Hemmelig.app/issues"
+    "url": "https://github.com/nerajchand/Hemmelig/issues"
   },
   "homepage": "/",
   "dependencies": {
@@ -50,6 +88,7 @@
     "fastify": "^5.2.1",
     "fastify-plugin": "^5.0.1",
     "file-type": "^18.0.0",
+    "generate-password": "^1.7.1",
     "generate-password-browser": "^1.1.0",
     "ip-range-check": "^0.2.0",
     "is-base64": "^1.1.0",
@@ -67,6 +106,11 @@
     "y8": "^1.0.5"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^10.0.4",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^11.0.7",
     "@tabler/icons": "^3.30.0",
     "@tabler/icons-react": "^3.30.0",
     "@tailwindcss/forms": "^0.5.9",
@@ -80,6 +124,7 @@
     "autoprefixer": "^10.4.20",
     "buffer": "^6.0.3",
     "classcat": "^5.0.3",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "dayjs": "^1.11.7",
     "deepmerge": "^4.2.2",
     "dlv": "^1.1.3",
@@ -101,13 +146,15 @@
     "react-i18next": "^11.18.5",
     "react-qr-code": "^2.0.8",
     "react-router-dom": "^7.5.2",
+    "semantic-release": "^24.2.0",
     "tweetnacl": "^0.14.5",
     "tweetnacl-util": "^0.15.1",
     "vite": "^5.4.18",
     "zustand": "^5.0.0"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "**/*": "prettier --write --ignore-unknown",
+    ".github/workflows/**": "true"
   },
   "browserslist": {
     "production": [

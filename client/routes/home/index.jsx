@@ -18,7 +18,6 @@ import {
 } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { burnSecret } from '../../api/secret';
 import CopyButton from '../../components/CopyButton';
 import Editor from '../../components/editor';
@@ -87,6 +86,11 @@ const Home = () => {
     const onSetPublic = (event) => {
         event.preventDefault();
 
+        // Don't allow toggling if public secrets are disabled
+        if (settings.disable_public_secrets) {
+            return;
+        }
+
         setField('isPublic', !isPublic);
     };
 
@@ -94,7 +98,7 @@ const Home = () => {
 
     const getSecretURL = (withEncryptionKey = true) => {
         if (!withEncryptionKey) return `${window.location.origin}/secret/${secretId}`;
-        return `${window.location.origin}/secret/${secretId}#encryption_key=${encryptionKey}`;
+        return `${window.location.origin}/secret/${secretId}#${btoa(encryptionKey)}`;
     };
 
     const onShare = (event) => {
@@ -228,7 +232,8 @@ const Home = () => {
                         <p className="mt-2 text-sm text-gray-400">{t('home.title_description')}</p>
                     </div>
 
-                    {!disableFileUpload && (
+                    {/* Only show file upload if not disabled in settings */}
+                    {!settings.disable_file_upload && !disableFileUpload && (
                         <div className="space-y-4">
                             <div
                                 onDragEnter={handleDragEnter}
@@ -339,60 +344,48 @@ const Home = () => {
                             )}
                         </div>
                     )}
-                    {disableFileUpload && (
-                        <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/[0.08]">
-                            <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <IconFileUpload className="text-primary" size={18} />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-white/90">
-                                        {t('home.login_to_upload')}
-                                    </div>
-                                </div>
-                            </div>
-                            <Link
-                                to="/signin"
-                                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 transition-colors"
-                            >
-                                {t('home.sign_in')}
-                            </Link>
-                        </div>
-                    )}
+                    {/* Hide file upload section entirely if disabled in settings */}
+                    {settings.disable_file_upload && null}
                 </div>
             </FormSection>
 
             <FormSection title={t('home.security')} subtitle={t('home.security_description')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
-                        <div className="space-y-4">
-                            <button
-                                type="button"
-                                onClick={onSetPublic}
-                                disabled={inputReadOnly}
-                                className={`
-                                        w-full flex items-start gap-4 px-4 py-3.5
-                                        bg-black/20 rounded-lg border
-                                        ${inputReadOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-white/[0.12]'} 
-                                        transition-all duration-200
-                                        ${!isPublic ? 'text-primary border-primary/50' : 'text-gray-300 border-white/[0.08]'}
-                                    `}
-                            >
-                                <div className="p-2.5 bg-black/20 rounded-lg shrink-0">
-                                    {isPublic ? <IconLockOpen size={22} /> : <IconLock size={22} />}
-                                </div>
-                                <div className="flex flex-col items-start min-w-0">
-                                    <span className="text-sm font-medium mb-0.5">
-                                        {t(isPublic ? 'home.public' : 'home.private')}
-                                    </span>
-                                    <span className="text-xs text-gray-400 text-left">
-                                        {isPublic
-                                            ? t('home.public_description')
-                                            : t('home.private_description')}
-                                    </span>
-                                </div>
-                            </button>
-                        </div>
+                        {!settings.disable_public_secrets && (
+                            <div className="space-y-4">
+                                <button
+                                    type="button"
+                                    onClick={onSetPublic}
+                                    disabled={inputReadOnly}
+                                    className={`
+                                            w-full flex items-start gap-4 px-4 py-3.5
+                                            bg-black/20 rounded-lg border
+                                            ${inputReadOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-white/[0.12]'} 
+                                            transition-all duration-200
+                                            ${!isPublic ? 'text-primary border-primary/50' : 'text-gray-300 border-white/[0.08]'}
+                                        `}
+                                >
+                                    <div className="p-2.5 bg-black/20 rounded-lg shrink-0">
+                                        {isPublic ? (
+                                            <IconLockOpen size={22} />
+                                        ) : (
+                                            <IconLock size={22} />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col items-start min-w-0">
+                                        <span className="text-sm font-medium mb-0.5">
+                                            {t(isPublic ? 'home.public' : 'home.private')}
+                                        </span>
+                                        <span className="text-xs text-gray-400 text-left">
+                                            {isPublic
+                                                ? t('home.public_description')
+                                                : t('home.private_description')}
+                                        </span>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <div
@@ -590,7 +583,7 @@ const Home = () => {
                                 <input
                                     type="range"
                                     min="1"
-                                    max="100"
+                                    max={Math.min(100, config.get('secret.maxViewsLimit'))}
                                     value={formData.maxViews}
                                     onChange={(e) =>
                                         setField('formData.maxViews', parseInt(e.target.value))
@@ -603,34 +596,36 @@ const Home = () => {
                             </div>
                         )}
 
-                        <div className="p-4 bg-black/20 rounded-lg border border-white/[0.08]">
-                            <div
-                                className={`flex items-center justify-between gap-4 ${inputReadOnly ? 'cursor-not-allowed opacity-80' : ''}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-orange-500/10 rounded-lg">
-                                        <IconFlame className="text-orange-400" size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-medium text-white/90">
-                                            {t('home.burn_after_time')}
-                                        </div>
-                                        <div className="text-xs text-gray-400">
-                                            {t('home.burn_aftertime')}
-                                        </div>
-                                    </div>
-                                </div>
-                                <Switch
-                                    checked={formData.preventBurn}
-                                    onChange={(checked) =>
-                                        setField('formData.preventBurn', checked)
-                                    }
-                                    disabled={inputReadOnly}
+                        {config.get('secret.enableBurnAfterTime') && (
+                            <div className="p-4 bg-black/20 rounded-lg border border-white/[0.08]">
+                                <div
+                                    className={`flex items-center justify-between gap-4 ${inputReadOnly ? 'cursor-not-allowed opacity-80' : ''}`}
                                 >
-                                    {t('home.burn_after_time')}
-                                </Switch>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-500/10 rounded-lg">
+                                            <IconFlame className="text-orange-400" size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-medium text-white/90">
+                                                {t('home.burn_after_time')}
+                                            </div>
+                                            <div className="text-xs text-gray-400">
+                                                {t('home.burn_aftertime')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        checked={formData.preventBurn}
+                                        onChange={(checked) =>
+                                            setField('formData.preventBurn', checked)
+                                        }
+                                        disabled={inputReadOnly}
+                                    >
+                                        {t('home.burn_after_time')}
+                                    </Switch>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </FormSection>
@@ -755,6 +750,10 @@ const Home = () => {
                                 </div>
                             )}
 
+                            <div className="pt-4">
+                                <QRLink value={getSecretURL(true)} />
+                            </div>
+
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button
                                     type="button"
@@ -794,12 +793,59 @@ const Home = () => {
                             </div>
                         </div>
                     </FormSection>
+                    <FormSection
+                        title={t('home.secret_url')}
+                        subtitle={t('home.secret_description')}
+                        collapsible={true}
+                    >
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">
+                                    {t('home.secret_url')}
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                        <IconLink size={14} />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={getSecretURL(false)}
+                                        readOnly
+                                        onClick={handleFocus}
+                                        className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
+                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <CopyButton textToCopy={getSecretURL(false)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">
+                                    {t('home.decryption_key')}
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                        <IconKey size={14} />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={encryptionKey}
+                                        readOnly
+                                        onClick={handleFocus}
+                                        className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
+                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <CopyButton textToCopy={encryptionKey} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </FormSection>
                 </>
             )}
-
-            <p className="text-gray-400 text-xs text-center pt-6">
-                Hemmelig, [he`m:(ə)li], {t('home.norwegian_meaning')}
-            </p>
         </div>
     );
 };

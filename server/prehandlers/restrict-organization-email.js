@@ -9,11 +9,20 @@ export default async function restrictOrganizationEmailHandler(request, reply) {
     const { url } = request;
     const restrict = adminSettings.get('restrict_organization_email');
 
-    if (
-        restrict &&
-        getEmailDomain(restrict) !== getEmailDomain(email) &&
-        authenticationRegex.test(url)
-    ) {
+    if (!restrict || !authenticationRegex.test(url)) {
+        return;
+    }
+
+    // Support comma-separated list of domains
+    const allowedDomains = restrict
+        .split(',')
+        .map((domain) => domain.trim())
+        .filter((domain) => domain.length > 0);
+
+    const userDomain = getEmailDomain(email);
+    const isAllowed = allowedDomains.some((domain) => getEmailDomain(domain) === userDomain);
+
+    if (!isAllowed) {
         return reply.code(403).send({ message: errorMessage });
     }
 }

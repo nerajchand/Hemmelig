@@ -24,6 +24,20 @@ const {
     SECRET_RATE_LIMIT_TIME_WINDOW = 60,
     SECRET_ANALYTICS_ENABLED = 'true',
     SECRET_ANALYTICS_HMAC_SECRET = '1234567890',
+    // Editor settings
+    SECRET_ADVANCED_COPY = 'false',
+    // Instance settings defaults
+    SECRET_READ_ONLY = 'false',
+    SECRET_DISABLE_USERS = 'false',
+    SECRET_DISABLE_USER_ACCOUNT_CREATION = 'false',
+    SECRET_DISABLE_IP_RESTRICTION = 'false',
+    SECRET_DISABLE_FILE_UPLOAD = 'false',
+    SECRET_RESTRICT_ORGANIZATION_EMAIL = '',
+    // Secret settings
+    SECRET_MAX_VIEWS_LIMIT = '100',
+    SECRET_ENABLE_BURN_AFTER_TIME = 'true',
+    SECRET_DISABLE_PUBLIC_SECRETS = 'false',
+    SECRET_TRUST_PROXY = 'true',
     NODE_ENV = 'development',
 } = process.env;
 
@@ -32,6 +46,7 @@ const config = {
     env: NODE_ENV,
     host: SECRET_HOST,
     port: SECRET_PORT,
+    trustProxy: JSON.parse(SECRET_TRUST_PROXY),
     upload_restriction: JSON.parse(SECRET_UPLOAD_RESTRICTION),
     rateLimit: {
         max: Number(SECRET_RATE_LIMIT_MAX),
@@ -84,6 +99,25 @@ const config = {
         enabled: JSON.parse(SECRET_ANALYTICS_ENABLED),
         hmacSecret: SECRET_ANALYTICS_HMAC_SECRET,
     },
+    // Editor settings
+    editor: {
+        advancedCopy: JSON.parse(SECRET_ADVANCED_COPY),
+    },
+    // Instance settings
+    instance: {
+        readOnly: JSON.parse(SECRET_READ_ONLY),
+        disableUsers: JSON.parse(SECRET_DISABLE_USERS),
+        disableUserAccountCreation: JSON.parse(SECRET_DISABLE_USER_ACCOUNT_CREATION),
+        disableIpRestriction: JSON.parse(SECRET_DISABLE_IP_RESTRICTION),
+        disableFileUpload: JSON.parse(SECRET_DISABLE_FILE_UPLOAD),
+        restrictOrganizationEmail: SECRET_RESTRICT_ORGANIZATION_EMAIL,
+    },
+    // Secret settings
+    secret: {
+        maxViewsLimit: Number(SECRET_MAX_VIEWS_LIMIT),
+        enableBurnAfterTime: JSON.parse(SECRET_ENABLE_BURN_AFTER_TIME),
+        disablePublicSecrets: JSON.parse(SECRET_DISABLE_PUBLIC_SECRETS),
+    },
     logger: true,
     cors: '*',
     __client_config: {
@@ -96,6 +130,14 @@ const config = {
             analytics: {
                 enabled: JSON.parse(SECRET_ANALYTICS_ENABLED),
             },
+        },
+        secret: {
+            maxViewsLimit: Number(SECRET_MAX_VIEWS_LIMIT),
+            enableBurnAfterTime: JSON.parse(SECRET_ENABLE_BURN_AFTER_TIME),
+            disablePublicSecrets: JSON.parse(SECRET_DISABLE_PUBLIC_SECRETS),
+        },
+        editor: {
+            advancedCopy: JSON.parse(SECRET_ADVANCED_COPY),
         },
     },
 };

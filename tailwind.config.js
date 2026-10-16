@@ -8,17 +8,17 @@ module.exports = {
         extend: {
             colors: {
                 hemmelig: {
-                    DEFAULT: '#2a9d8f',
-                    50: '#ffffff',
-                    100: '#eaf5f4',
-                    200: '#d4ebe9',
-                    300: '#bfe2dd',
-                    400: '#aad8d2',
-                    500: '#95cec7',
-                    600: '#7fc4bc',
-                    700: '#6abab1',
-                    800: '#55b1a5',
-                    900: '#3fa79a',
+                    DEFAULT: '#008fe2',
+                    50: '#e6f4ff',
+                    100: '#cceaff',
+                    200: '#99d5ff',
+                    300: '#66bfff',
+                    400: '#33aaff',
+                    500: '#008fe2',
+                    600: '#0073b5',
+                    700: '#005688',
+                    800: '#003a5a',
+                    900: '#001d2d'
                 },
                 'hemmelig-orange': {
                     DEFAULT: '#ff9769',
@@ -34,9 +34,9 @@ module.exports = {
                     900: '#ffa178',
                 },
                 primary: {
-                    light: '#3fb8a8',
-                    DEFAULT: '#2a9d8f',
-                    dark: '#1f8578',
+                    light: '#008fe2',
+                    DEFAULT: '#008fe2',
+                    dark: '#008fe2'
                 },
             },
             fontFamily: {

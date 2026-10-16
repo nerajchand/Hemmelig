@@ -42,7 +42,7 @@ const PublicSecrets = () => {
                             <tr key={secret.id} className="hover:bg-gray-700/30 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <Link
-                                        to={`/secret/${secret.id}#encryption_key=public`}
+                                        to={`/secret/${secret.id}#${btoa('public')}`}
                                         className="text-gray-300 hover:text-white transition-colors"
                                     >
                                         {(secret.title.length > 40

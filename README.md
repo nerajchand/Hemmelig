@@ -1,27 +1,14 @@
-[![Docker pulls](https://img.shields.io/docker/pulls/hemmeligapp/hemmelig)](https://hub.docker.com/r/hemmeligapp/hemmelig)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=HemmeligOrg_Hemmelig.app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=HemmeligOrg_Hemmelig.app)
-[![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/he71.svg)](https://betteruptime.com/?utm_source=status_badge)
-
-<div align="center">
-  <img src="banner.png" alt="hemmelig" />
-</div>
 
 <h1 align="center">Encrypted secret sharing for everyone!</h1>
 
 <div align="center">
-  Hemmelig is a encrypted sharing platform that enables secure transmission of sensitive information. All encryption occurs client-side using TweetNaCl, ensuring your data remains encrypted before it reaches our servers. The platform supports both personal and organizational use cases, with features like IP restrictions, expiration controls, and optional password protection. Whether you're sharing credentials, sensitive messages, or confidential files, Hemmelig strives to ensure your data remains private and secure.
+  Hemmelig is an encrypted sharing platform that enables secure transmission of sensitive information. All encryption occurs client-side using TweetNaCl, ensuring your data remains encrypted before it reaches our servers. The platform supports both personal and organizational use cases, with features like IP restrictions, expiration controls, and optional password protection. Whether you're sharing credentials, sensitive messages, or confidential files, Hemmelig strives to ensure your data remains private and secure.
 </div>
-
-## SaaS
-
-Hemmelig is available at [https://hemmelig.app](https://hemmelig.app)
-
-https://github.com/user-attachments/assets/fb237fdb-d811-4809-9d01-e0bb6e2b50be
 
 
 ## How it works
 
-1. Visit [https://hemmelig.app](https://hemmelig.app) and enter your sensitive information
+1. Enter your sensitive information in the application
 2. Configure your secret:
    - Set expiration time
    - Add optional password
@@ -43,10 +30,6 @@ encryptedData = encrypt(yourSecretData, uniqueEncryptionKey)
 // Only encryptedData is sent to server
 // uniqueEncryptionKey is only shared via URL as a fragment.
 ```
-
-## Hetzner Cloud Referral
-
-Hemmelig is proudly hosted on [Hetzner Cloud](https://hetzner.cloud/?ref=Id028KbCZQoD). Hetzner provides reliable and scalable cloud solutions, making it an ideal choice for hosting secure applications like Hemmelig. By using our [referral link](https://hetzner.cloud/?ref=Id028KbCZQoD), you can join Hetzner Cloud and receive €20/$20 in credits. Once you spend at least €10/$10 (excluding credits), Hemmelig will receive €10/$10 in Hetzner Cloud credits. This is a great opportunity to explore Hetzner's services while supporting Hemmelig.
 
 ## Features
 
@@ -108,59 +91,82 @@ All analytics data excludes bot traffic and respects user privacy by not storing
 
 ### Deployment Options
 
-- Self-hosted version available
-- SQLite database with Prisma ORM
+- PostgreSQL database support (production)
+- SQLite database support (development/local)
+- Multi-architecture Docker images (AMD64 and ARM64)
 - CLI support for automation
+- API for automated password generation
 - Regulatory compliance support
 
-## Docker image
+## Docker Images
 
-Hemmelig strongly advises you to use the tagged docker images as the main branch will have breaking changes now and then. For Hemmelig versions supporting Redis, use <= v4.4.0.
+This repository automatically builds and publishes multi-architecture Docker images to GitHub Container Registry (ghcr.io) on each release.
 
-Supported docker platforms: `amd/64`, `arm/64`.
+### Image Tags
 
-- hemmeligapp/hemmelig:v6 (Is created on each version release for the major version)
-- hemmeligapp/hemmelig:v6.X (Is created on each version release for the major and minor version)
-- hemmeligapp/hemmelig:v6.X.X see [tags](https://github.com/HemmeligOrg/Hemmelig.app/tags) for all version
-- hemmeligapp/hemmelig:weekly (pushed every week on Friday)
-- hemmeligapp/hemmelig:daily
+Images are automatically tagged with semantic versions:
+- `ghcr.io/nerajchand/hemmelig:latest` - Latest release
+- `ghcr.io/nerajchand/hemmelig:1.6.1` - Full version tag
+- `ghcr.io/nerajchand/hemmelig:1.6` - Minor version tag
+- `ghcr.io/nerajchand/hemmelig:1` - Major version tag
 
-## Self-hosting
+### Supported Platforms
 
-If you have to follow some sort of compliance, and have to self-host, [https://hemmelig.app](https://hemmelig.app) is available as a docker image. The following is the bare minimum to run the docker image.
+- `linux/amd64` (x86_64)
+- `linux/arm64` (ARM64)
 
+### Building Multi-Architecture Images
+
+For local builds, see [MULTIARCH_BUILD.md](./MULTIARCH_BUILD.md) for detailed instructions.
+
+Quick start:
 ```bash
 mkdir -p data/hemmelig database
 sudo chown 1000:1000 data/hemmelig database
 
-docker run -p 3000:3000 -d --name=hemmelig \
-   -v ./data/hemmelig/:/var/tmp/hemmelig/upload/files \ # For the file uploads
-   -v ./database/:/home/node/hemmelig/database/ \       # For the sqlite database
-   hemmeligapp/hemmelig:v5.19.4
+# Build and push to registry (multi-arch)
+PUSH=true REGISTRY=ghcr.io IMAGE_NAME=your-username/hemmelig IMAGE_TAG=v1.0.0 ./docker-build-multiarch.sh
 ```
 
-Alternatively you can use [docker compose](https://docs.docker.com/compose/):
+## Local Development & Self-Hosting
 
-**NEW**: Sign in with Github and edit the docker-compose.yml here https://www.dockerfile.app/docker-compose/cm2qfl57s00061059n94ruje5
+### Using Docker Compose
+
+The easiest way to run Hemmelig locally is using Docker Compose:
 
 ```bash
-# fetch docker-compose.yml
-wget https://raw.githubusercontent.com/HemmeligOrg/Hemmelig.app/main/docker-compose.yml
+# Start the application with PostgreSQL
+docker compose up -d
 
-# create volumes directories
-mkdir -p data/hemmelig database
+# View logs
+docker compose logs -f
 
 # set permissions (Node user has UID 1000 within the container)
 sudo chown 1000:1000 data/hemmelig database
 
-# start hemmelig 
-docker compose up -d
+The `docker-compose.yml` file includes:
+- Hemmelig application
+- PostgreSQL database
+- Automatic database migrations
 
-# stop containers
-docker compose down
+### Using Docker (SQLite)
+
+For a minimal setup with SQLite:
+
+```bash
+mkdir -p data/hemmelig database
+chown 1000:1000 data/hemmelig database
+
+docker run -p 3000:3000 -d --name=hemmelig \
+   -v ./data/hemmelig/:/var/tmp/hemmelig/upload/files \
+   -v ./database/:/home/node/hemmelig/database/ \
+   -e DATABASE_URL="file:./database/hemmelig.db" \
+   ghcr.io/nerajchand/hemmelig:latest
 ```
 
-Have a look at the Dockerfile for a full example of how to run this application.
+### Environment Variables
+
+See the [Environment variables](#environment-variables) section below for configuration options.
 
 ## CLI
 
@@ -174,55 +180,239 @@ cat mysecretfile | npx hemmelig
 npx hemmelig --help
 ```
 
+## Password Generation API
+
+Hemmelig provides a REST API endpoint for generating secure passwords and automatically creating shareable secret links. This is useful for automation, CI/CD pipelines, and programmatic password generation.
+
+### Endpoints
+
+- **POST** `/api/password/generate` - Generate password with JSON request body
+- **GET** `/api/password/generate` - Generate password with query parameters
+
+### POST Request Example
+
+```bash
+curl -X POST https://your-instance.com/api/password/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "length": 20,
+    "numbers": true,
+    "symbols": true,
+    "uppercase": true,
+    "lowercase": true,
+    "excludeSimilarCharacters": false,
+    "strict": true,
+    "ttl": 3600,
+    "maxViews": 1,
+    "title": "API Generated Password",
+    "showPassword": false
+  }'
+```
+
+**Response:**
+```json
+{
+  "url": "https://your-instance.com/secret/abc123#encryptionkey",
+  "secretId": "abc123",
+  "expiresAt": "2024-01-02T00:00:00.000Z"
+}
+```
+
+### GET Request Example
+
+```bash
+curl "https://your-instance.com/api/password/generate?length=20&numbers=true&symbols=true&ttl=3600&maxViews=1&showPassword=false"
+```
+
+### Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `length` | integer | `16` | Password length (min: 4, max: 128) |
+| `numbers` | boolean | `true` | Include numeric characters (0-9) |
+| `symbols` | boolean | `true` | Include special characters (!@#$%^&*) |
+| `uppercase` | boolean | `true` | Include uppercase letters (A-Z) |
+| `lowercase` | boolean | `true` | Include lowercase letters (a-z) |
+| `excludeSimilarCharacters` | boolean | `false` | Exclude similar characters (i, l, 1, L, o, 0, O) |
+| `strict` | boolean | `false` | Ensure at least one character from each enabled set |
+| `ttl` | integer | `86400` | Secret lifetime in seconds (1 day). Must be a valid TTL value |
+| `maxViews` | integer | `1` | Maximum views before secret is deleted (min: 1, max: 999) |
+| `title` | string | - | Optional title for the secret (max: 255 characters) |
+| `showPassword` | boolean | `false` | Include the generated password in the response |
+
+### Use Cases
+
+- **Automated password generation** for new user accounts
+- **CI/CD pipelines** that need to securely share generated credentials
+- **Scripts** that generate temporary passwords for services
+- **Integration** with other tools that need secure password generation
+
+### Security Notes
+
+- The generated password is encrypted client-side before being stored
+- The decryption key is only included in the URL fragment (never sent to server)
+- Secrets automatically expire based on the `ttl` parameter
+- Secrets are deleted after reaching `maxViews` limit
+- The password is only returned in the response if `showPassword: true` is set
+
+## Secret Encryption API
+
+Hemmelig provides a REST API endpoint for encrypting secrets/passwords and automatically creating shareable secret links. This is useful when you already have a secret/password that you want to encrypt and share securely.
+
+### Endpoints
+
+- **POST** `/api/encrypt` - Encrypt secret with JSON request body
+- **GET** `/api/encrypt` - Encrypt secret with query parameters
+
+### POST Request Example
+
+```bash
+curl -X POST https://your-instance.com/api/encrypt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "my-secret-password",
+    "ttl": 3600,
+    "maxViews": 1,
+    "title": "My Encrypted Secret",
+    "preventBurn": false
+  }'
+```
+
+**Response:**
+```json
+{
+  "url": "https://your-instance.com/secret/abc123#encryptionkey",
+  "secretId": "abc123",
+  "expiresAt": "2024-01-02T00:00:00.000Z"
+}
+```
+
+### GET Request Example
+
+```bash
+curl "https://your-instance.com/api/encrypt?password=my-secret-password&ttl=3600&maxViews=1&title=My%20Secret"
+```
+
+### Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `password` | string | **Required** | The secret/password to encrypt (in plain text) |
+| `ttl` | integer | `86400` | Secret lifetime in seconds (1 day). Must be a valid TTL value |
+| `maxViews` | integer | `1` | Maximum views before secret is deleted (min: 1, max: 999) |
+| `title` | string | - | Optional title for the secret (max: 255 characters) |
+| `preventBurn` | boolean | `false` | Prevent secret from being deleted after expiration (only if feature enabled) |
+
+### Use Cases
+
+- **Encrypting existing passwords** for secure sharing
+- **CI/CD pipelines** that need to securely share pre-existing credentials
+- **Scripts** that need to encrypt and share secrets programmatically
+- **Integration** with other tools that need to encrypt secrets on-the-fly
+
+### Security Notes
+
+- The provided password/secret is encrypted before being stored
+- The decryption key is only included in the URL fragment (never sent to server)
+- Secrets automatically expire based on the `ttl` parameter
+- Secrets are deleted after reaching `maxViews` limit
+- The plain text password is never returned in the response for security
+
 ## Environment variables
 
-| ENV vars                        | Description                                                           | Default              |
-| --------------------------------|:---------------------------------------------------------------------:| --------------------:|
-| `SECRET_LOCAL_HOSTNAME`         | The local hostname for the fastify instance                           | 0.0.0.0              |
-| `SECRET_PORT`                   | The port number for the fastify instance                              | 3000                 |
-| `SECRET_HOST`                   | Used for i.e. set cors/cookies to your domain name                    | ""                   |
-| `SECRET_MAX_TEXT_SIZE`          | The max text size for the secret. Is set in kb. i.e. 256 for 256kb.   | 256                  |
-| `SECRET_JWT_SECRET`             | Override this for the secret signin JWT tokens for log in             | good_luck_have_fun   |
-| `SECRET_ROOT_USER`              | Override this for the root account username                           | groot                |
-| `SECRET_ROOT_PASSWORD`          | This is the root password, override it with your own password         | iamgroot             |
-| `SECRET_ROOT_EMAIL`             | This is the root email, override it with your own email               | <groot@hemmelig.app> |
-| `SECRET_FILE_SIZE`              | Set the total allowed upload file size in mb.                         | 4                    |
-| `SECRET_FORCED_LANGUAGE`        | Set the default language for the application.                         | en                   |
-| `SECRET_UPLOAD_RESTRICTION`     | Set the restriction for uploads to signed in users                    | "true"               |
-| `SECRET_RATE_LIMIT_MAX`         | The maximum allowed requests each time frame                          | 1000                 |
-| `SECRET_RATE_LIMIT_TIME_WINDOW` | The time window for the requests before being rate limited in seconds | 60                   |
-| `SECRET_DO_SPACES_ENDPOINT`     | The Digital Ocean Spaces/AWS s3 endpoint                              | ""                   |
-| `SECRET_DO_SPACES_KEY`          | The Digital Ocean Spaces/AWS s3 key                                   | ""                   |
-| `SECRET_DO_SPACES_SECRET`       | The Digital Ocean Spaces/AWS s3 secret                                | ""                   |
-| `SECRET_DO_SPACES_BUCKET`       | The Digital Ocean Spaces/AWS s3 bucket name                           | ""                   |
-| `SECRET_DO_SPACES_FOLDER`       | The Digital Ocean Spaces/AWS s3 folder for the uploaded files         | ""                   |
-| `SECRET_AWS_S3_REGION`          | The Digital AWS s3 region                                             | ""                   |
-| `SECRET_AWS_S3_KEY`             | The Digital AWS s3 key                                                | ""                   |
-| `SECRET_AWS_S3_SECRET`          | The Digital AWS s3 secret                                             | ""                   |
-| `SECRET_AWS_S3_BUCKET`          | The Digital AWS s3 bucket name                                        | ""                   |
-| `SECRET_AWS_S3_FOLDER`          | The Digital AWS s3 folder for the uploaded files                      | ""                   |
-| `SECRET_ANALYTICS_ENABLED`      | Enable analytics tracking                                             | "false"              |
-| `SECRET_ANALYTICS_HMAC_SECRET`  | The HMAC secret for the analytics tracking                            | "1234567890"         |
+| ENV Variable                         | Description                                                  | Default              |
+|---------------------------------------|--------------------------------------------------------------|----------------------|
+| `SECRET_LOCAL_HOSTNAME`               | Local hostname for the Fastify instance                      | `0.0.0.0`            |
+| `SECRET_PORT`                         | Port number for the Fastify instance                         | `3000`               |
+| `SECRET_HOST`                         | Domain for CORS/cookies settings                             | `""`                 |
+| `SECRET_MAX_TEXT_SIZE`                | Max secret text size in KB (e.g., 256 for 256 KB)            | `256`                |
+| `SECRET_JWT_SECRET`                   | JWT signing secret for authentication                        | `good_luck_have_fun` |
+| `SECRET_ROOT_USER`                    | Root account username                                        | `groot`              |
+| `SECRET_ROOT_PASSWORD`                | Root account password                                        | `iamgroot`           |
+| `SECRET_ROOT_EMAIL`                   | Root account email                                           | `groot@hemmelig.app` |
+| `SECRET_FILE_SIZE`                    | Max upload file size (in MB)                                 | `4`                  |
+| `SECRET_FORCED_LANGUAGE`              | Default language for the application                         | `en`                 |
+| `SECRET_UPLOAD_RESTRICTION`           | Restrict uploads to signed-in users                          | `"true"`             |
+| `SECRET_RATE_LIMIT_MAX`               | Max requests per rate limit window                           | `1000`               |
+| `SECRET_RATE_LIMIT_TIME_WINDOW`       | Rate limit time window (seconds)                             | `60`                 |
+| `SECRET_DO_SPACES_ENDPOINT`           | DigitalOcean Spaces/S3 endpoint                              | `""`                 |
+| `SECRET_DO_SPACES_KEY`                | DigitalOcean Spaces/S3 access key                            | `""`                 |
+| `SECRET_DO_SPACES_SECRET`             | DigitalOcean Spaces/S3 secret key                            | `""`                 |
+| `SECRET_DO_SPACES_BUCKET`             | DigitalOcean Spaces/S3 bucket name                           | `""`                 |
+| `SECRET_DO_SPACES_FOLDER`             | DigitalOcean Spaces/S3 folder for uploads                    | `""`                 |
+| `SECRET_AWS_S3_REGION`                | AWS S3 region                                                | `""`                 |
+| `SECRET_AWS_S3_KEY`                   | AWS S3 access key                                            | `""`                 |
+| `SECRET_AWS_S3_SECRET`                | AWS S3 secret key                                            | `""`                 |
+| `SECRET_AWS_S3_BUCKET`                | AWS S3 bucket name                                           | `""`                 |
+| `SECRET_AWS_S3_FOLDER`                | AWS S3 folder for uploads                                    | `""`                 |
+| `SECRET_ANALYTICS_ENABLED`            | Enable analytics tracking                                    | `"false"`            |
+| `SECRET_ANALYTICS_HMAC_SECRET`        | HMAC secret for analytics tracking                           | `"1234567890"`       |
+| `SECRET_ADVANCED_COPY`                | Show advanced copy options (HTML & Base64)                   | `"false"`            |
+| `SECRET_READ_ONLY`                    | Read-only mode (only admin/creator can create secrets)       | `"false"`            |
+| `SECRET_DISABLE_USERS`                | Disable user functionality                                   | `"false"`            |
+| `SECRET_DISABLE_USER_ACCOUNT_CREATION`| Disable user account registration                            | `"false"`            |
+| `SECRET_DISABLE_IP_RESTRICTION`       | Disable IP restriction feature                               | `"false"`            |
+| `SECRET_DISABLE_FILE_UPLOAD`          | Disable file upload functionality                            | `"false"`            |
+| `SECRET_RESTRICT_ORGANIZATION_EMAIL`  | Allowed email domains for registration (comma-separated)     | `""`                 |
+| `SECRET_MAX_VIEWS_LIMIT`              | Max views per secret                                         | `"100"`              |
+| `SECRET_ENABLE_BURN_AFTER_TIME`       | Enable "burn after expiration" (secrets deleted on max views only) | `"true"`             |
+| `SECRET_DISABLE_PUBLIC_SECRETS`       | Disable public secrets feature                               | `"false"`            |
 
 ## Supported languages
 
 Have a look at the `public/locales/` folder.
 
-## Run locally
+## Development
+
+### Prerequisites
+
+- Node.js 20.x or higher
+- npm or yarn
+- PostgreSQL (for production-like setup) or SQLite (for local development)
+
+### Running Locally
 
 ```bash
+# Install dependencies
 npm install
 
-# Start the frontend/backend
-npm run dev
-# http://0.0.0.0:3001
+# Set up the database (SQLite for local dev)
+npm run prisma:migrate dev
 
+# Start the development server
+npm run dev
+# Application will be available at http://0.0.0.0:3001
 ```
+
+### Building Multi-Architecture Images
+
+See [MULTIARCH_BUILD.md](./MULTIARCH_BUILD.md) for detailed instructions on building Docker images for multiple architectures.
+
+### CI/CD
+
+This repository uses GitHub Actions for automated builds and releases:
+- **Automatic builds** on push to `main` branch
+- **Semantic versioning** via semantic-release
+- **Multi-architecture images** built automatically
+- **Automatic tagging** with version numbers
+
+See `.github/workflows/release.yml` for the CI/CD configuration.
 
 ## Database
 
-Hemmelig moved from using Redis as a backend to sqlite. Here we are using Prisma, and the sqlite file is available here:
-`/database/hemmelig.db`. Have a look at the docker-compose.yml file for how to handle the database.
+Hemmelig uses Prisma ORM and supports both PostgreSQL (production) and SQLite (development/local).
+
+### PostgreSQL (Production)
+
+The production deployment uses PostgreSQL managed via Helm charts. Connection is configured via the `DATABASE_URL` environment variable.
+
+### SQLite (Development/Local)
+
+For local development, SQLite is used by default. The database file is located at:
+- `/database/hemmelig.db` (when using Docker volumes)
+- `./database/hemmelig.db` (when running locally)
+
+See `docker-compose.yml` for an example of how to handle the database in Docker.
 
 ## Admin, roles and settings
 
@@ -238,15 +428,30 @@ The difference here is that if you i.e. set Hemmelig to be in read only mode, on
 
 Admins are also allowed to create new users in the settings. This is great if you want to limit who your users are by the `disable user account creation` setting.
 
-## My lovely contributors
 
-<a href="https://github.com/HemmeligOrg/Hemmelig.app/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=HemmeligOrg/Hemmelig.app" />
-</a>
+## Building and Releasing
+
+### Building Multi-Architecture Images
+
+This repository includes scripts and workflows for building multi-architecture Docker images:
+
+- **Local builds**: Use `docker-build-multiarch.sh` for local testing
+- **CI/CD**: GitHub Actions automatically builds and pushes images on release
+- **Documentation**: See [MULTIARCH_BUILD.md](./MULTIARCH_BUILD.md) for complete guide
+
+### Release Process
+
+1. Push changes to `main` branch
+2. GitHub Actions workflow runs semantic-release
+3. If a new version is detected, semantic-release:
+   - Creates a git tag (e.g., `v1.6.1`)
+   - Builds multi-architecture Docker images
+   - Pushes images to GitHub Container Registry
+   - Tags images with version numbers (full, minor, major, latest)
 
 ## Contribution
 
-Feel free to contribute to this repository. Have a look at CONTRIBUTION.md for the guidelines.
+Feel free to contribute to this repository. Have a look at CONTRIBUTING.md for the guidelines.
 
 ## Common errors
 

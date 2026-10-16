@@ -18,6 +18,8 @@ const getAnalyticsData = async () => {
     try {
         const response = await fetch('/api/analytics/data/aggregate/daily', {
             method: 'GET',
+            credentials: 'include',
+            cache: 'no-cache',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -45,6 +47,8 @@ const getStatistics = async () => {
     try {
         const response = await fetch('/api/stats', {
             method: 'GET',
+            credentials: 'include',
+            cache: 'no-cache',
             headers: {
                 'Content-Type': 'application/json',
             },

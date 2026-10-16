@@ -30,6 +30,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { generate } from 'generate-password-browser';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import config from '../../config';
 
 const generatePassword = (
     length = 16,
@@ -333,7 +334,7 @@ const ReadOnlyMenuBar = () => {
         navigator.clipboard
             .writeText(text)
             .then(() => {
-                setCopySuccess(t('editor.copy_success.text'));
+                setCopySuccess(t('editor.copy_success.copied'));
                 setTimeout(() => setCopySuccess(''), 2000);
             })
             .catch((err) => {
@@ -361,33 +362,52 @@ const ReadOnlyMenuBar = () => {
     };
 
     const buttonClass =
+        'flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors';
+    const iconButtonClass =
         'p-1.5 text-sm rounded-md hover:bg-gray-700 text-gray-200 transition-colors';
     const groupClass = 'flex items-center border border-gray-700 rounded-md bg-gray-800 shadow-sm';
 
+    // Check if advanced copy features are enabled
+    const showAdvancedCopy = config.get('editor.advancedCopy', false);
+
     return (
-        <div className="mb-4 flex w-full">
-            <div className="flex gap-2">
-                <div className={groupClass}>
-                    <Tooltip text={t('editor.tooltips.copy_text')}>
-                        <button onClick={copyAsPlainText} className={buttonClass}>
-                            <IconCopy size={20} stroke={1.5} className="text-gray-300" />
-                        </button>
-                    </Tooltip>
-                    <Tooltip text={t('editor.tooltips.copy_html')}>
-                        <button onClick={copyAsHTML} className={buttonClass}>
-                            <IconSourceCode size={20} className="text-gray-300" />
-                        </button>
-                    </Tooltip>
-                    <Tooltip text={t('editor.tooltips.copy_base64')}>
-                        <button onClick={copyAsBase64} className={buttonClass}>
-                            <IconNumber64Small size={20} stroke={1.5} className="text-gray-300" />
-                        </button>
-                    </Tooltip>
-                </div>
+        <div className="mb-4 flex w-full justify-end">
+            <div className="flex items-center gap-2">
+                {copySuccess && (
+                    <div className="text-sm text-gray-200 animate-fade-in-out">{copySuccess}</div>
+                )}
+
+                {showAdvancedCopy ? (
+                    // Advanced mode: Show all copy options in a grouped style
+                    <div className={groupClass}>
+                        <Tooltip text={t('editor.tooltips.copy_text')}>
+                            <button onClick={copyAsPlainText} className={iconButtonClass}>
+                                <IconCopy size={16} stroke={1.5} className="text-gray-300" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip text={t('editor.tooltips.copy_html')}>
+                            <button onClick={copyAsHTML} className={iconButtonClass}>
+                                <IconSourceCode size={16} className="text-gray-300" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip text={t('editor.tooltips.copy_base64')}>
+                            <button onClick={copyAsBase64} className={iconButtonClass}>
+                                <IconNumber64Small
+                                    size={16}
+                                    stroke={1.5}
+                                    className="text-gray-300"
+                                />
+                            </button>
+                        </Tooltip>
+                    </div>
+                ) : (
+                    // Simple mode: Show only the main copy button with text
+                    <button onClick={copyAsPlainText} className={buttonClass}>
+                        <IconCopy size={16} stroke={1.5} className="text-gray-300" />
+                        <span>{t('editor.copy')}</span>
+                    </button>
+                )}
             </div>
-            {copySuccess && (
-                <div className="text-sm text-gray-200 animate-fade-in-out p-2">{copySuccess}</div>
-            )}
         </div>
     );
 };
