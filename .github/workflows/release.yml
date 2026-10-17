@@ -49,6 +49,11 @@ jobs:
             - name: Install Dependencies
               run: npm ci
 
+            - name: Configure git identity
+              run: |
+                git config user.name "GitHub Actions"
+                git config user.email "github-actions[bot]@users.noreply.github.com"
+
             - name: Create release tag (semver bump from PR labels or commit)
               id: release
               env:
