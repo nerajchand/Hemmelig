@@ -57,13 +57,8 @@ const Privacy = () => {
                         <h2 className="text-xl font-semibold text-white">Data Collection</h2>
                         <p className="text-gray-300 leading-relaxed">
                             We only collect the minimum amount of data necessary to provide our
-                            service. This includes:
+                            service.
                         </p>
-                        <ul className="list-disc pl-6 space-y-2 text-gray-300">
-                            <li>The encrypted content of your secrets</li>
-                            <li>Expiration times for secrets</li>
-                            <li>Basic usage statistics (non-personal)</li>
-                        </ul>
                     </section>
 
                     <section className="space-y-4">

@@ -72,6 +72,7 @@ const Secret = () => {
     const [isSecretOpen, setIsSecretOpen] = useState(false);
     const [password, setPassword] = useState('');
     const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+    const [isPublic, setIsPublic] = useState(false);
     const [files, setFiles] = useState(null);
     const [isDownloaded, setIsDownloaded] = useState([]);
     const [error, setError] = useState(null);
@@ -89,6 +90,7 @@ const Secret = () => {
             } else {
                 setMaxViews(response.maxViews);
                 setPreventBurn(response.preventBurn);
+                setIsPublic(!!response.isPublic);
             }
         })();
     }, [secretId]);
@@ -100,7 +102,7 @@ const Secret = () => {
             return;
         }
 
-        if (!decryptionKey) {
+        if (!isPublic && !decryptionKey) {
             setError(t('secret.decryption_key_required'));
             return;
         }
@@ -243,7 +245,7 @@ const Secret = () => {
                                 )}
 
                                 {/* Decryption Key Input */}
-                                {!encryptionKey && (
+                                {!encryptionKey && !isPublic && (
                                     <div className="space-y-2">
                                         <p className="text-base text-center text-gray-300">
                                             {t('home.decryption_key')}

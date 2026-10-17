@@ -196,12 +196,21 @@ const Home = () => {
             <FormSection>
                 <div className="space-y-6">
                     <div className="space-y-2">
-                        <Editor
-                            name="text"
-                            content={formData.text}
-                            setContent={(value) => setField('formData.text', value)}
-                            editable={!inputReadOnly}
-                        />
+                        {inputReadOnly ? (
+                            <Editor
+                                key={`ro-${secretId}`}
+                                content={formData.text}
+                                editable={false}
+                            />
+                        ) : (
+                            <Editor
+                                key={`edit-${secretId}`}
+                                name="text"
+                                content={formData.text}
+                                setContent={(value) => setField('formData.text', value)}
+                                editable={true}
+                            />
+                        )}
                         {errors.fields.text && <FieldError message={errors.fields.text} />}
                     </div>
 
@@ -217,7 +226,7 @@ const Home = () => {
                             onChange={(e) => setField('formData.title', e.target.value)}
                             readOnly={inputReadOnly}
                             className="w-full pl-10 pr-3 py-2.5 bg-gray-900 border border-gray-700 rounded-md
-                                         focus:ring-2 focus:ring-hemmelig focus:border-transparent
+                                        focus:border-hemmelig focus:ring-0 
                                          text-base text-gray-100 placeholder-gray-500"
                         />
                         <p className="mt-2 text-sm text-gray-400">{t('home.title_description')}</p>
@@ -660,28 +669,86 @@ const Home = () => {
             {secretId && (
                 <>
                     <FormSection
-                        title={t('home.complete_url')}
-                        subtitle={t('home.complete_url_description')}
+                        title={t('home.secret_url')}
+                        subtitle={t('home.secret_description')}
                     >
                         <div className="space-y-6">
                             <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300">
+                                    {t('home.secret_url')}
+                                </label>
                                 <div className="relative">
                                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                                         <IconLink size={14} />
                                     </span>
                                     <input
                                         type="text"
-                                        value={getSecretURL(true)}
+                                        value={getSecretURL(false)}
                                         readOnly
                                         onClick={handleFocus}
                                         className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
                                                      rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                        <CopyButton textToCopy={getSecretURL(true)} />
+                                        <CopyButton textToCopy={getSecretURL(false)} />
                                     </div>
                                 </div>
                             </div>
+
+                            {!isPublic && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-300">
+                                        {t('home.decryption_key')}
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                            <IconKey size={14} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={encryptionKey}
+                                            readOnly
+                                            onClick={handleFocus}
+                                            className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
+                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <CopyButton textToCopy={encryptionKey} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="pt-4">
+                                <QRLink value={getSecretURL()} />
+                            </div>
+                        </div>
+                    </FormSection>
+                    <FormSection
+                        title={t('home.complete_url')}
+                        subtitle={t('home.complete_url_description')}
+                    >
+                        <div className="space-y-6">
+                            {!isPublic && (
+                                <div className="space-y-2">
+                                    <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                            <IconLink size={14} />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={getSecretURL(true)}
+                                            readOnly
+                                            onClick={handleFocus}
+                                            className="w-full pl-10 pr-20 py-2 bg-gray-800 border border-gray-700 
+                                                     rounded-md text-gray-100 focus:ring-hemmelig focus:border-hemmelig"
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <CopyButton textToCopy={getSecretURL(true)} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="pt-4">
                                 <QRLink value={getSecretURL(true)} />

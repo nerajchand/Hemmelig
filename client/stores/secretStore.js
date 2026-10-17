@@ -90,7 +90,7 @@ const useSecretStore = create((set, get) => ({
 
         try {
             const password = state.enablePassword ? state.formData.password : '';
-            const key = generateKey(password);
+            const key = state.isPublic ? null : generateKey(password);
 
             const encryptedText = state.isPublic
                 ? state.formData.text

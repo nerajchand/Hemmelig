@@ -121,8 +121,8 @@ For local builds, see [MULTIARCH_BUILD.md](./MULTIARCH_BUILD.md) for detailed in
 
 Quick start:
 ```bash
-# Build for local use (single platform)
-PLATFORMS=linux/amd64 ./docker-build-multiarch.sh
+mkdir -p data/hemmelig database
+sudo chown 1000:1000 data/hemmelig database
 
 # Build and push to registry (multi-arch)
 PUSH=true REGISTRY=ghcr.io IMAGE_NAME=your-username/hemmelig IMAGE_TAG=v1.0.0 ./docker-build-multiarch.sh
@@ -141,9 +141,8 @@ docker compose up -d
 # View logs
 docker compose logs -f
 
-# Stop containers
-docker compose down
-```
+# set permissions (Node user has UID 1000 within the container)
+sudo chown 1000:1000 data/hemmelig database
 
 The `docker-compose.yml` file includes:
 - Hemmelig application
