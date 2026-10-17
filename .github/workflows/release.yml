@@ -7,8 +7,6 @@ on:
 
 jobs:
     release:
-        # Skip workflow if commit message contains [skip ci] or similar patterns
-        # This prevents the workflow from running again when semantic-release commits changes
         if: |
             github.event.head_commit.message == null || (
               !contains(github.event.head_commit.message, '[skip ci]') &&
@@ -25,25 +23,21 @@ jobs:
             IMAGE_NAME: ${{ github.repository }}
 
         steps:
-            # Set lowercase image name
             - name: Set lowercase image name
               id: vars
               run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
-            # Step 1: Checkout the repository code
             - name: Checkout Repository
               uses: actions/checkout@v3
               with:
-                  fetch-depth: 0 # Fetch all history for all branches and tags
-                  token: ${{ secrets.GH_TOKEN }} # Authenticates Git with your PAT
+                  fetch-depth: 0
+                  token: ${{ secrets.GH_TOKEN }}
 
-            # Step 2: Set up Node.js
             - name: Set up Node.js
               uses: actions/setup-node@v3
               with:
                   node-version: '20.x'
 
-            # Step 3: Cache Node.js modules to speed up future builds
             - name: Cache Node.js modules
               uses: actions/cache@v3
               with:
@@ -52,31 +46,120 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-node-modules-
 
-            # Step 4: Install dependencies
             - name: Install Dependencies
               run: npm ci
 
-            # Step 5: Run semantic-release and extract the new version
-            - name: Run Semantic Release and get version
-              id: semantic
+            - name: Create release tag (semver bump from PR labels or commit)
+              id: release
               env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                REPO: ${{ github.repository }}
+                SHA: ${{ github.sha }}
               run: |
-                  npx semantic-release --dry-run
-                  VERSION=$(npx semantic-release --dry-run | grep -oE 'Published release ([0-9]+\.[0-9]+\.[0-9]+)' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  # Parse version components
-                  MAJOR=$(echo "$VERSION" | cut -d. -f1)
-                  MINOR=$(echo "$VERSION" | cut -d. -f1,2)
-                  echo "major=$MAJOR" >> $GITHUB_OUTPUT
-                  echo "minor=$MINOR" >> $GITHUB_OUTPUT
-                  npx semantic-release
+                set -euo pipefail
 
-            # Step 6: Set up Docker Buildx
+                if ! command -v jq >/dev/null 2>&1; then
+                  echo "jq not found, installing..."
+                  sudo apt-get update -y
+                  sudo apt-get install -y jq
+                fi
+
+                git fetch --tags --prune
+
+                LAST_TAG=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+                echo "Last tag: $LAST_TAG"
+
+                LAST=${LAST_TAG#v}
+                MAJOR=$(echo "$LAST" | cut -d. -f1)
+                MINOR=$(echo "$LAST" | cut -d. -f2)
+                PATCH=$(echo "$LAST" | cut -d. -f3)
+                MAJOR=${MAJOR:-0}
+                MINOR=${MINOR:-0}
+                PATCH=${PATCH:-0}
+
+                COMMIT_MSG=$(git log -1 --pretty=%B "$SHA")
+                echo "Commit message:"
+                echo "$COMMIT_MSG"
+
+                PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE '#[0-9]+' | head -n1 | tr -d '#' || true)
+
+                if [ -z "$PR_NUMBER" ]; then
+                  echo "PR number not found in commit message; querying GitHub API for pulls associated with commit..."
+                  PR_NUMBER=$(curl -s -H "Accept: application/vnd.github.groot-preview+json" \
+                    -H "Authorization: token $GITHUB_TOKEN" \
+                    "https://api.github.com/repos/$REPO/commits/$SHA/pulls" \
+                    | jq -r '.[0].number // empty')
+                fi
+
+                echo "Detected PR number: ${PR_NUMBER:-none}"
+
+                BUMP=""
+                if [ -n "$PR_NUMBER" ]; then
+                  echo "Fetching labels for PR #$PR_NUMBER"
+                  LABELS_JSON=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/issues/$PR_NUMBER")
+                  LABEL_NAMES=$(echo "$LABELS_JSON" | jq -r '.labels[]?.name' | tr '[:upper:]' '[:lower:]' || true)
+                  echo "Labels: $LABEL_NAMES"
+
+                  if echo "$LABEL_NAMES" | grep -qE '\bmajor\b'; then
+                    BUMP="major"
+                  elif echo "$LABEL_NAMES" | grep -qE '\bminor\b'; then
+                    BUMP="minor"
+                  elif echo "$LABEL_NAMES" | grep -qE '\bpatch\b'; then
+                    BUMP="patch"
+                  fi
+                fi
+
+                if [ -z "$BUMP" ]; then
+                  echo "No bump label found; falling back to commit message conventional commits parsing..."
+                  if echo "$COMMIT_MSG" | grep -qE "BREAKING CHANGE|BREAKING-CHANGE|BREAKING_CHANGE"; then
+                    BUMP="major"
+                  elif echo "$COMMIT_MSG" | grep -qE "^feat(\(|:)" ; then
+                    BUMP="minor"
+                  elif echo "$COMMIT_MSG" | grep -qE "^fix(\(|:)" ; then
+                    BUMP="patch"
+                  else
+                    BUMP="minor"
+                  fi
+                fi
+
+                echo "Determined bump type: $BUMP"
+
+                if [ "$BUMP" = "major" ]; then
+                  NEXT_MAJOR=$((MAJOR + 1))
+                  NEXT_MINOR=0
+                  NEXT_PATCH=0
+                elif [ "$BUMP" = "minor" ]; then
+                  NEXT_MAJOR=$MAJOR
+                  NEXT_MINOR=$((MINOR + 1))
+                  NEXT_PATCH=0
+                else
+                  NEXT_MAJOR=$MAJOR
+                  NEXT_MINOR=$MINOR
+                  NEXT_PATCH=$((PATCH + 1))
+                fi
+
+                NEXT_VERSION="${NEXT_MAJOR}.${NEXT_MINOR}.${NEXT_PATCH}"
+                echo "Next version: $NEXT_VERSION"
+
+                echo "version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
+                echo "major=${NEXT_MAJOR}" >> $GITHUB_OUTPUT
+                echo "minor=${NEXT_MAJOR}.${NEXT_MINOR}" >> $GITHUB_OUTPUT
+                echo "bump=${BUMP}" >> $GITHUB_OUTPUT
+
+                TAG="v${NEXT_VERSION}"
+                git tag -a "$TAG" -m "Release $TAG (bump: $BUMP)"
+                echo "Pushing tag $TAG..."
+                if ! git push origin "$TAG"; then
+                  echo "First push failed, retrying after small sleep..."
+                  sleep 3
+                  git push origin "$TAG"
+                fi
+
+                echo "Tag pushed: $TAG"
+
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            # Step 7: Log in to GitHub Container Registry
             - name: Log in to GitHub Container Registry
               uses: docker/login-action@v3
               with:
@@ -84,12 +167,10 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GH_TOKEN }}
 
-            # Step 8: Get Git SHA
             - name: Get Git SHA
               id: git-sha
               run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-            # Step 9: Build and push multi-architecture Docker image
             - name: Build and push multi-arch Docker image
               uses: docker/build-push-action@v5
               with:
@@ -98,12 +179,12 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   push: true
                   tags: |
-                      ${{ steps.vars.outputs.image }}:${{ steps.semantic.outputs.version }}
-                      ${{ steps.vars.outputs.image }}:${{ steps.semantic.outputs.minor }}
-                      ${{ steps.vars.outputs.image }}:${{ steps.semantic.outputs.major }}
+                      ${{ steps.vars.outputs.image }}:${{ steps.release.outputs.version }}
+                      ${{ steps.vars.outputs.image }}:${{ steps.release.outputs.minor }}
+                      ${{ steps.vars.outputs.image }}:${{ steps.release.outputs.major }}
                       ${{ steps.vars.outputs.image }}:latest
                   build-args: |
                       GIT_SHA=${{ steps.git-sha.outputs.sha }}
-                      GIT_TAG=v${{ steps.semantic.outputs.version }}
+                      GIT_TAG=v${{ steps.release.outputs.version }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
