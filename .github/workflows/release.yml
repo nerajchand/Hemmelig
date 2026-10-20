@@ -193,3 +193,15 @@ jobs:
                       GIT_TAG=v${{ steps.release.outputs.version }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+
+            - name: Create GitHub Release
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+              run: |
+                  TAG="v${{ steps.release.outputs.version }}"
+                  gh release create "$TAG" \
+                    --repo "${{ github.repository }}" \
+                    --verify-tag \
+                    --title "$TAG" \
+                    --generate-notes \
+                    --latest
