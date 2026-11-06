@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-slim AS builder
+FROM node:24.22.1-slim AS builder
 WORKDIR /usr/src/app
 
 # Copy package files first to leverage Docker layer caching
@@ -22,7 +22,7 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage
-FROM node:22-slim AS production
+FROM node:24.22.1-slim AS production
 
 # Install only required system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
