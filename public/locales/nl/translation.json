@@ -176,6 +176,8 @@
         "will_show_once": "Standaard wordt het geheim maar één keer getoond.",
         "views_left": "Aantal resterende weergaven:",
         "password_required": "Dit geheim vereist een wachtwoord",
+        "copy_secret": "Kopiëren zonder weergeven",
+        "copied": "Gekopieerd naar klembord!",
         "view_secret": "Geheim bekijken",
         "create_secret": "Nieuw geheim delen",
         "convert_b64": "Tekst naar Base64 converteren",

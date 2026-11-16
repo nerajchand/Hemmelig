@@ -93,6 +93,8 @@
         "will_show_once": "預設情況下，機密只能瀏覽一次。",
         "views_left": "剩餘瀏覽次數：",
         "password_required": "需要密碼才能打開此機密",
+        "copy_secret": "複製而不檢視",
+        "copied": "已複製到剪貼簿！",
         "view_secret": "查看機密",
         "create_secret": "建立新機密",
         "convert_b64": "將文字轉換成 base64",

@@ -176,6 +176,8 @@
         "will_show_once": "Par défaut, le secret ne sera affiché qu'une seule fois.",
         "views_left": "Affichages restants :",
         "password_required": "Un mot de passe est nécessaire pour ouvrir ce secret",
+        "copy_secret": "Copier sans afficher",
+        "copied": "Copié dans le presse-papiers !",
         "view_secret": "Voir le secret",
         "create_secret": "Créer un nouveau secret",
         "convert_b64": "Convertir le texte en base64",

@@ -174,6 +174,8 @@
         "will_show_once": "默认情况下，我们只显示一次秘密。",
         "views_left": "剩余查看次数：",
         "password_required": "需要密码才能打开此秘密",
+        "copy_secret": "复制而不查看",
+        "copied": "已复制到剪贴板！",
         "view_secret": "查看秘密",
         "create_secret": "创建新秘密",
         "convert_b64": "将文本转换为 base64",
