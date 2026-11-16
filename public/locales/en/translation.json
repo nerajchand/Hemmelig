@@ -176,6 +176,8 @@
         "will_show_once": "By default we will only show the secret once.",
         "views_left": "Views left:",
         "password_required": "A password is required to open this secret",
+        "copy_secret": "Copy without viewing",
+        "copied": "Copied to clipboard!",
         "view_secret": "View the secret",
         "create_secret": "Create a new secret",
         "convert_b64": "Convert text to base64",

@@ -87,6 +87,8 @@
         "will_show_once": "Por predefinição, só mostraremos o segredo uma vez.",
         "views_left": "Visualizações restantes:",
         "password_required": "É necessária uma palavra-passe para abrir este segredo",
+        "copy_secret": "Copiar sem visualizar",
+        "copied": "Copiado para a área de transferência!",
         "view_secret": "Ver o segredo",
         "create_secret": "Criar um novo segredo",
         "convert_b64": "Converter texto para base64",

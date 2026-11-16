@@ -171,6 +171,8 @@
         "will_show_once": "Opatrně, tajemství bude zobrazeno pouze jednou.",
         "views_left": "Zbývajících zobrazení:",
         "password_required": "Pro zobrazení tohoto tajemství je vyžadováno heslo",
+        "copy_secret": "Zkopírovat bez zobrazení",
+        "copied": "Zkopírováno do schránky!",
         "view_secret": "Zobrazit tajemství",
         "create_secret": "Vytvořit nové tajemství",
         "convert_b64": "Konvertovat text do base64",

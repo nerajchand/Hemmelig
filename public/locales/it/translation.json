@@ -161,6 +161,8 @@
         "will_show_once": "Per impostazione predefinita visualizzeremo il segreto solo una volta.",
         "views_left": "Visualizzazioni rimaste:",
         "password_required": "E' richiesta una password per aprire questo segreto",
+        "copy_secret": "Copia senza visualizzare",
+        "copied": "Copiato negli appunti!",
         "view_secret": "Visualizza dati segreti",
         "create_secret": "Crea un nuovo segreto",
         "convert_b64": "Converti testo in base64",

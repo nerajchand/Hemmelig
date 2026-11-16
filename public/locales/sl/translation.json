@@ -175,6 +175,8 @@
         "will_show_once": "Privzeto bomo skrivnost prikazali samo enkrat.",
         "views_left": "Ogledov še na voljo:",
         "password_required": "Za odpiranje te skrivnosti je potrebno geslo",
+        "copy_secret": "Kopiraj brez prikaza",
+        "copied": "Kopirano v odložišče!",
         "view_secret": "Oglej si skrivnost",
         "create_secret": "Ustvari novo skrivnost",
         "convert_b64": "Pretvori besedilo v base64",

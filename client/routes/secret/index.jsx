@@ -1,4 +1,6 @@
 import {
+    IconCheck,
+    IconCopy,
     IconDownload,
     IconEye,
     IconFile,
@@ -58,6 +60,15 @@ const ensureHtmlContent = (text) => {
     return paragraphs || '<p></p>';
 };
 
+// Convert the HTML secret into plain text, keeping line breaks
+const htmlToPlainText = (html) => {
+    const withBreaks = html
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/(p|div|li|h[1-6]|pre|blockquote)>/gi, '\n');
+    const doc = new DOMParser().parseFromString(withBreaks, 'text/html');
+    return (doc.body.textContent || '').replace(/\n+$/, '');
+};
+
 const Secret = () => {
     const { t } = useTranslation();
     const { hash = '' } = useLocation();
@@ -76,6 +87,7 @@ const Secret = () => {
     const [files, setFiles] = useState(null);
     const [isDownloaded, setIsDownloaded] = useState([]);
     const [error, setError] = useState(null);
+    const [isCopied, setIsCopied] = useState(false);
 
     // Fetch secret existence on mount
     useEffect(() => {
@@ -95,15 +107,81 @@ const Secret = () => {
         })();
     }, [secretId]);
 
-    const fetchSecret = async (event) => {
-        event.preventDefault();
-
+    // Fetches and decrypts the secret (this counts as a view).
+    // Returns the decrypted content, or null if something went wrong.
+    const loadSecret = async () => {
         if (isPasswordRequired && (!password || !decryptionKey)) {
-            return;
+            return null;
         }
 
         if (!isPublic && !decryptionKey) {
             setError(t('secret.decryption_key_required'));
+            return null;
+        }
+
+        const json = await getSecret(secretId, password);
+
+        if (json.statusCode === 401) {
+            setIsPasswordRequired(true);
+            setError(t('secret.incorrect_password'));
+            return null;
+        }
+
+        if (json.error) {
+            setError(json.error);
+            return null;
+        }
+
+        try {
+            const text = json.isPublic
+                ? json.secret
+                : decrypt(json.secret, decryptionKey + password);
+
+            // Ensure content is properly formatted as HTML for TipTap editor
+            const html = ensureHtmlContent(text);
+
+            const decryptedTitle = json.title
+                ? json.isPublic
+                    ? json.title
+                    : decrypt(json.title, decryptionKey + password)
+                : null;
+
+            // Only decrement maxViews if we successfully decrypted the secret
+            if (!json.isPublic && !isPasswordRequired) {
+                setMaxViews((prev) => Math.max(0, prev - 1));
+            } else {
+                // If password protected
+                setMaxViews(json.maxViews - 1);
+            }
+
+            if (json.preventBurn) {
+                setPreventBurn(json.preventBurn);
+            }
+
+            setError(null);
+
+            return { html, title: decryptedTitle, files: json.files };
+        } catch (error) {
+            setError(error.message);
+            return null;
+        }
+    };
+
+    const revealSecret = ({ html, title: decryptedTitle, files: secretFiles }) => {
+        setSecret(html);
+        if (decryptedTitle) {
+            setTitle(decryptedTitle);
+        }
+        if (secretFiles) {
+            setFiles(secretFiles);
+        }
+        setIsSecretOpen(true);
+    };
+
+    const fetchSecret = async (event) => {
+        event.preventDefault();
+
+        if (isPasswordRequired && (!password || !decryptionKey)) {
             return;
         }
 
@@ -112,52 +190,39 @@ const Secret = () => {
             return;
         }
 
-        const json = await getSecret(secretId, password);
+        const result = await loadSecret();
+        if (result) {
+            revealSecret(result);
+        }
+    };
 
-        if (json.statusCode === 401) {
-            setIsPasswordRequired(true);
-            setError(t('secret.incorrect_password'));
+    // Copies the secret to the clipboard without displaying it.
+    // It still counts as a view, since the secret is fetched from the server.
+    const copySecret = async (event) => {
+        event.preventDefault();
+
+        if (isPasswordRequired && (!password || !decryptionKey)) {
             return;
         }
 
-        if (json.error) {
-            setError(json.error);
-        } else {
-            try {
-                const text = json.isPublic
-                    ? json.secret
-                    : decrypt(json.secret, decryptionKey + password);
+        setIsCopied(false);
 
-                // Ensure content is properly formatted as HTML for TipTap editor
-                setSecret(ensureHtmlContent(text));
+        const result = await loadSecret();
+        if (!result) {
+            return;
+        }
 
-                if (json.title) {
-                    setTitle(
-                        json.isPublic ? json.title : decrypt(json.title, decryptionKey + password)
-                    );
-                }
-
-                // Only decrement maxViews if we successfully decrypted the secret
-                if (!json.isPublic && !isPasswordRequired) {
-                    setMaxViews((prev) => Math.max(0, prev - 1));
-                } else {
-                    // If password protected
-                    setMaxViews(json.maxViews - 1);
-                }
-
-                if (json.files) {
-                    setFiles(json.files);
-                }
-
-                if (json.preventBurn) {
-                    setPreventBurn(json.preventBurn);
-                }
-
-                setIsSecretOpen(true);
-                setError(null);
-            } catch (error) {
-                setError(error.message);
+        try {
+            await navigator.clipboard.writeText(htmlToPlainText(result.html));
+            setIsCopied(true);
+            // Files can only be downloaded from the opened view
+            if (result.files?.length > 0) {
+                revealSecret(result);
             }
+        } catch (e) {
+            // The secret has already been consumed, so don't lose it:
+            // show it so the user can still read/copy it manually.
+            revealSecret(result);
         }
     };
 
@@ -344,6 +409,18 @@ const Secret = () => {
                         >
                             <IconEye size={14} />
                             {t('secret.view_secret')}
+                        </button>
+                    )}
+
+                    {/* Copy Secret Button (without displaying it) */}
+                    {!isSecretOpen && (
+                        <button
+                            onClick={copySecret}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 
+                                     rounded-md hover:bg-gray-700 hover:text-white transition-colors"
+                        >
+                            {isCopied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                            {isCopied ? t('secret.copied') : t('secret.copy_secret')}
                         </button>
                     )}
 
